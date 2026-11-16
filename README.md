@@ -21,6 +21,8 @@ If the app link does not open, run `ipconfig` on the laptop and check the `Local
 
 ## Run locally on Windows / XAMPP
 
+Moving the project to a teammate's PC or copying the database? Follow [MIGRATION.md](MIGRATION.md) first. It explains what GitHub contains, how to create demo data, and how to securely transfer the existing database and item photos.
+
 ### Requirements
 
 - XAMPP with PHP 8.2 and MySQL/MariaDB
