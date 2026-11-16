@@ -15,7 +15,7 @@ import { Notice, errorMessage, label, niceDate } from '../core/ui';
   template: `
   <ion-header>
     <ion-toolbar><ion-title><span class="brand-inline"><span class="brand-mini" aria-hidden="true"><svg viewBox="0 0 32 32" fill="none"><path d="M16 3.5 27 8v7.1c0 6.7-4.4 11.2-11 13.4C10.4 26.3 6 21.8 6 15.1V8l10-4.5Z" stroke="currentColor" stroke-width="1.8"/><path d="M12.2 16.1h7.6M16 12.3v7.6" stroke="#235347" stroke-width="2.2" stroke-linecap="round"/></svg></span>Lost &amp; Found</span></ion-title></ion-toolbar>
-    <ion-toolbar><ion-searchbar placeholder="Search by name or place" [debounce]="400" (ionInput)="search($any($event).detail.value)"></ion-searchbar></ion-toolbar>
+    <ion-toolbar><ion-searchbar placeholder="Search by item name or place" [debounce]="400" (ionInput)="search($any($event).detail.value)"></ion-searchbar></ion-toolbar>
     <ion-toolbar>
       <ion-segment [value]="type" (ionChange)="setType($any($event).detail.value)">
         <ion-segment-button value=""><ion-label>All</ion-label></ion-segment-button>
@@ -29,11 +29,11 @@ import { Notice, errorMessage, label, niceDate } from '../core/ui';
     @if (loading) {
       <div class="center"><ion-spinner></ion-spinner></div>
     } @else if (!items.length) {
-      <div class="empty"><h2>Nothing here yet</h2><p>No items match. Try another search, or report your lost item so the office can look for it.</p></div>
+        <div class="empty"><span class="empty-icon" aria-hidden="true">⌕</span><h2>Nothing found</h2><p>No items match your search. Try another keyword or switch the item filter.</p></div>
     } @else {
       <ion-list>
         @for (i of items; track i.id) {
-          <ion-item button detail [routerLink]="['/item', i.id]">
+          <ion-item class="item-row" button detail [routerLink]="['/item', i.id]">
             <ion-thumbnail slot="start">@if (i.photo_url) { <img [src]="i.photo_url" [alt]="i.name" /> }</ion-thumbnail>
             <ion-label>
               <h2>{{ i.name }}</h2>

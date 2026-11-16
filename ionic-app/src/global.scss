@@ -78,3 +78,85 @@ ion-refresher-content { --color: #235347; }
 :focus-visible { outline: 3px solid #8eb69b; outline-offset: 3px; }
 @media (min-width: 760px) { ion-content.ion-padding { --padding-start: 28px; --padding-end: 28px; } .wrap { padding-top: 2rem; } }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { transition-duration: .01ms !important; scroll-behavior: auto !important; } }
+
+// Final visual pass: shared spacing, focus, cards, and device-safe layouts.
+:root {
+  --lf-ink: #051f20;
+  --lf-deep: #0b2b26;
+  --lf-green: #235347;
+  --lf-leaf: #8eb69b;
+  --lf-pale: #daf1de;
+  --lf-paper: #fbfefb;
+  --lf-line: #c5ddcb;
+  --lf-muted: #4d6b5d;
+}
+
+body { color: var(--lf-ink); font-size: 15px; line-height: 1.5; }
+ion-content { --background: radial-gradient(ellipse at 85% 0%, rgba(142,182,155,.22), transparent 42%), linear-gradient(155deg, #f7fbf7 0%, #edf6ef 48%, #e3f0e6 100%); }
+ion-header { box-shadow: 0 3px 14px rgba(5,31,32,.11); }
+ion-toolbar { --min-height: 58px; }
+ion-title { font-size: 1.02rem; }
+ion-content.ion-padding { --padding-top: 20px; --padding-bottom: 28px; }
+.wrap { width: min(100%, 520px); padding-bottom: max(1.5rem, env(safe-area-inset-bottom)); }
+.field { margin-bottom: 1.05rem; }
+ion-input, ion-select, ion-textarea { --background: var(--lf-paper); --border-color: #a8c8b0; --border-radius: 13px; --highlight-color-focused: var(--lf-green); --highlight-color-valid: var(--lf-green); --highlight-color-invalid: #9b3931; font-size: .96rem; }
+ion-input:focus-within, ion-select:focus-within, ion-textarea:focus-within { filter: drop-shadow(0 3px 8px rgba(35,83,71,.12)); }
+ion-button { --border-radius: 13px; min-height: 48px; font-size: .94rem; font-weight: 720; }
+ion-button[size="small"] { min-height: 38px; }
+ion-button[fill="clear"] { --box-shadow: none; }
+.card { padding: 1.05rem 1.15rem; margin-bottom: .95rem; border-color: rgba(142,182,155,.62); border-radius: 17px; background: rgba(251,254,251,.94); box-shadow: 0 7px 20px rgba(5,31,32,.065); }
+.muted { color: var(--lf-muted); }
+.err { color: #8b3029; font-weight: 550; }
+.tag { min-height: 25px; padding: .27rem .7rem; font-size: .72rem; letter-spacing: .015em; }
+.remark { border-left-width: 4px; background: #eaf5ec; line-height: 1.5; }
+.photo { display: block; border-radius: 17px; }
+
+ion-list { width: min(100%, 920px); margin: 0 auto; padding: 8px clamp(12px, 3vw, 24px) 24px; }
+ion-item.item-row { --background: rgba(251,254,251,.96); --border-color: transparent; --min-height: 92px; --padding-start: 12px; --inner-padding-end: 10px; margin: 10px 0; border: 1px solid rgba(142,182,155,.55); border-radius: 17px; box-shadow: 0 5px 16px rgba(5,31,32,.065); }
+ion-item.item-row::part(native) { border-radius: 17px; }
+ion-item.item-row:active { transform: scale(.992); }
+ion-item h2 { color: var(--lf-ink); font-size: 1rem; font-weight: 720; line-height: 1.25; }
+ion-item p { color: var(--lf-muted); font-size: .82rem; }
+ion-thumbnail { --size: 66px; --border-radius: 13px; }
+ion-thumbnail img { width: 100%; height: 100%; object-fit: cover; }
+ion-searchbar { --background: rgba(218,241,222,.22); --border-radius: 14px; --placeholder-color: #d8e9dc; --color: #fff; --icon-color: #daf1de; --clear-button-color: #daf1de; }
+ion-searchbar .searchbar-input { font-size: .92rem; }
+ion-segment { margin: 3px 8px 5px; }
+ion-tab-bar { --background: rgba(251,254,251,.97); --border: 1px solid rgba(142,182,155,.5); padding: 6px 5px max(7px, env(safe-area-inset-bottom)); }
+ion-tab-button { min-height: 55px; --color: #5b7467; --color-selected: var(--lf-green); }
+ion-tab-button.tab-selected { border-top: 0; border-radius: 13px; background: rgba(218,241,222,.55); }
+ion-tab-button ion-icon { font-size: 1.3rem; }
+.empty { width: min(100%, 480px); margin: 8vh auto 0; padding: 2.2rem 1.5rem; border: 1px dashed rgba(35,83,71,.25); border-radius: 20px; background: rgba(251,254,251,.68); }
+.empty-icon { display: grid; place-items: center; width: 54px; height: 54px; margin: 0 auto 1rem; border-radius: 18px; background: var(--lf-pale); color: var(--lf-green); font-size: 2rem; font-weight: 700; }
+.item-title-block { padding: .25rem 0 .35rem; }
+.item-title-block h1 { margin: .15rem 0 .7rem; overflow-wrap: anywhere; }
+.item-title-block .eyebrow { color: var(--lf-muted); font-size: .68rem; font-weight: 800; letter-spacing: .14em; }
+.tag-row { display: flex; flex-wrap: wrap; gap: .45rem; margin: 0 0 1rem; }
+.detail-card p { margin: .55rem 0; line-height: 1.55; overflow-wrap: anywhere; }
+.item-photo { max-height: min(42vh, 340px); object-fit: cover; }
+.activity-card { padding: 1rem 1.05rem; }
+.activity-title { display: flex; align-items: flex-start; justify-content: space-between; gap: .7rem; margin-bottom: .2rem; }
+.activity-title a { min-width: 0; color: var(--lf-ink); font-size: 1rem; line-height: 1.35; overflow-wrap: anywhere; }
+.activity-title .tag { flex: 0 0 auto; }
+.profile-summary { display: flex; align-items: center; gap: .9rem; padding: 1.1rem; }
+.profile-avatar { display: grid; place-items: center; width: 54px; height: 54px; flex: 0 0 54px; border: 1px solid #a6c7ae; border-radius: 18px; background: linear-gradient(145deg, #daf1de, #8eb69b); color: var(--lf-deep); font-size: 1.1rem; font-weight: 800; }
+.profile-summary p { margin: .15rem 0; }
+.profile-email { overflow-wrap: anywhere; }
+.section-heading { margin: 1.35rem 0 .85rem; font-size: 1.08rem; }
+.section-spaced { margin-top: 1.8rem; }
+.login-wrap { padding-top: clamp(2.2rem, 10vh, 6rem); }
+.login-brand { margin-bottom: 1.15rem; }
+.server-card { border-color: rgba(142,182,155,.75); background: rgba(251,254,251,.84); box-shadow: 0 6px 18px rgba(5,31,32,.045); }
+.registration-help { padding: .75rem .85rem; border-left: 3px solid var(--lf-leaf); border-radius: 0 11px 11px 0; background: rgba(218,241,222,.5); }
+:focus-visible { outline: 3px solid #8eb69b; outline-offset: 3px; }
+
+@media (min-width: 900px) {
+  ion-list { padding-top: 14px; }
+  ion-item.item-row { --min-height: 100px; }
+}
+@media (max-width: 380px) {
+  body { font-size: 14px; }
+  ion-content.ion-padding { --padding-start: 14px; --padding-end: 14px; }
+  .tag { padding-inline: .55rem; font-size: .68rem; }
+  .activity-title { flex-direction: column; }
+}

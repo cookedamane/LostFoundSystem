@@ -28,8 +28,8 @@ import { Notice, errorMessage, label, niceDate } from '../core/ui';
     @else if (tab === 'claims') {
       @if (!claims.length) { <div class="empty"><h2>No claims yet</h2><p>Open a found item in Browse and tap Claim this item.</p></div> }
       @for (c of claims; track c.id) {
-        <div class="card">
-          <p><a [routerLink]="['/item', c.item_id]"><b>{{ c.item_name }}</b></a> <span class="tag" [class]="'tag s-' + c.status">{{ label(c.status) }}</span></p>
+        <div class="card activity-card">
+          <div class="activity-title"><a [routerLink]="['/item', c.item_id]"><b>{{ c.item_name }}</b></a> <span class="tag" [class]="'tag s-' + c.status">{{ label(c.status) }}</span></div>
           <p class="muted">Sent {{ date(c.created_at) }}</p>
           @if (c.status === 'approved') { <p>Approved. Bring a valid ID to the Lost and Found office.</p> }
           @if (c.status === 'approved' && c.item_status === 'returned') { <p>The item was returned to you.</p> }
@@ -40,8 +40,8 @@ import { Notice, errorMessage, label, niceDate } from '../core/ui';
     } @else {
       @if (!reports.length) { <div class="empty"><h2>No reports yet</h2><p>Use the Report lost tab to tell the office what you lost.</p></div> }
       @for (r of reports; track r.id) {
-        <div class="card">
-          <p><a [routerLink]="['/item', r.id]"><b>{{ r.name }}</b></a> <span class="tag" [class]="'tag s-' + r.status">{{ statusText(r.status) }}</span></p>
+        <div class="card activity-card">
+          <div class="activity-title"><a [routerLink]="['/item', r.id]"><b>{{ r.name }}</b></a> <span class="tag" [class]="'tag s-' + r.status">{{ statusText(r.status) }}</span></div>
           <p class="muted">{{ r.category }} &middot; {{ date(r.created_at) }}</p>
           @if (r.admin_note) { <div class="remark">{{ r.admin_note }}</div> }
         </div>

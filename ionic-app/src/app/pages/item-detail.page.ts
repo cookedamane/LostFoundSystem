@@ -17,10 +17,10 @@ import { Notice, errorMessage, fieldErrors, label, niceDate } from '../core/ui';
     <div class="wrap">
     @if (loading) { <div class="center"><ion-spinner></ion-spinner></div> }
     @else if (item) {
-      @if (item.photo_url) { <img class="photo" [src]="item.photo_url" [alt]="item.name" /> }
-      <h1>{{ item.name }}</h1>
-      <p><span class="tag" [class]="'tag t-' + item.type">{{ label(item.type) }}</span> <span class="tag" [class]="'tag s-' + item.status">{{ label(item.status) }}</span></p>
-      <div class="card">
+      @if (item.photo_url) { <img class="photo item-photo" [src]="item.photo_url" [alt]="item.name" /> }
+      <div class="item-title-block"><p class="eyebrow">ITEM DETAILS</p><h1>{{ item.name }}</h1>
+      <p class="tag-row"><span class="tag" [class]="'tag t-' + item.type">{{ label(item.type) }}</span> <span class="tag" [class]="'tag s-' + item.status">{{ label(item.status) }}</span></p></div>
+      <div class="card detail-card">
         <p><b>Category:</b> {{ item.category }}</p>
         <p><b>{{ item.type === 'found' ? 'Found at:' : 'Lost at:' }}</b> {{ item.location }}</p>
         <p><b>Date:</b> {{ date(item.date_event) }}</p>

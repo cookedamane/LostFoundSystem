@@ -13,16 +13,16 @@ import { Notice, errorMessage, fieldErrors } from '../core/ui';
   <ion-header><ion-toolbar><ion-title>Profile</ion-title></ion-toolbar></ion-header>
   <ion-content class="ion-padding">
     <div class="wrap">
-      <div class="card"><p><b>{{ email }}</b></p><p class="muted">Student ID: {{ studentId || 'Not set' }}</p></div>
+      <div class="card profile-summary"><span class="profile-avatar" aria-hidden="true">{{ initials }}</span><div><p class="profile-email"><b>{{ email }}</b></p><p class="muted">Student ID: {{ studentId || 'Not set' }}</p></div></div>
 
-      <h2>Your details</h2>
+      <h2 class="section-heading">Your details</h2>
       <form (ngSubmit)="save()" novalidate>
         <div class="field"><ion-input label="Full name" labelPlacement="stacked" fill="outline" name="name" [(ngModel)]="name"></ion-input>@if (errs['name']) { <p class="err">{{ errs['name'] }}</p> }</div>
         <div class="field"><ion-input label="Phone" labelPlacement="stacked" fill="outline" type="tel" name="phone" [(ngModel)]="phone"></ion-input>@if (errs['phone']) { <p class="err">{{ errs['phone'] }}</p> }</div>
         <ion-button expand="block" type="submit">Save details</ion-button>
       </form>
 
-      <h2 style="margin-top:1.5rem">Change password</h2>
+      <h2 class="section-heading section-spaced">Change password</h2>
       <form (ngSubmit)="changePassword()" novalidate>
         <div class="field"><ion-input label="Current password" labelPlacement="stacked" fill="outline" type="password" name="cur" [(ngModel)]="cur"></ion-input>@if (pwErrs['current_password']) { <p class="err">{{ pwErrs['current_password'] }}</p> }</div>
         <div class="field"><ion-input label="New password" labelPlacement="stacked" fill="outline" type="password" name="next" [(ngModel)]="next"></ion-input>@if (pwErrs['new_password']) { <p class="err">{{ pwErrs['new_password'] }}</p> }</div>
@@ -41,6 +41,7 @@ export class ProfilePage {
   studentId = this.api.user?.student_id ?? '';
   name = this.api.user?.name ?? '';
   phone = this.api.user?.phone ?? '';
+  get initials() { return this.name.split(/\s+/).filter(Boolean).slice(0, 2).map(part => part[0].toUpperCase()).join('') || 'U'; }
   cur = '';
   next = '';
   errs: Record<string, string> = {};
