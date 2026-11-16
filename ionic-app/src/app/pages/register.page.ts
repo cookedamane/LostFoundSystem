@@ -17,6 +17,7 @@ import { errorMessage, fieldErrors } from '../core/ui';
         <span><p class="eyebrow">TEAM BANGAN</p><h1>Create your account</h1></span>
       </div>
       <p class="muted">You need an account to report items and send claims.</p>
+      <p class="muted registration-help">Use a unique email address. Passwords must be 8–72 characters and include at least one letter and one number. Student ID and phone are optional.</p>
       <form (ngSubmit)="submit()" novalidate>
         @for (f of fields; track f.key) {
           <div class="field">
@@ -52,14 +53,25 @@ export class RegisterPage {
   submit() {
     this.errs = {}; this.error = '';
     const f = this.form;
-    if (f['name'].trim().length < 2) { this.errs['name'] = 'Enter your full name.'; }
-    if (!/^\S+@\S+\.\S+$/.test(f['email'].trim())) { this.errs['email'] = 'Enter a valid email address.'; }
-    if (f['password'].length < 8 || !/[A-Za-z]/.test(f['password']) || !/\d/.test(f['password'])) { this.errs['password'] = 'Use 8 or more characters with letters and numbers.'; }
+    const name = f['name'].trim();
+    const email = f['email'].trim().toLowerCase();
+    const passwordBytes = new TextEncoder().encode(f['password']).length;
+    if (name.length < 2 || name.length > 120) { this.errs['name'] = 'Enter a name between 2 and 120 characters.'; }
+    if (email.length > 150 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { this.errs['email'] = 'Enter a valid email address (up to 150 characters).'; }
+    if (f['student_id'].trim().length > 40) { this.errs['student_id'] = 'Student ID must be 40 characters or fewer.'; }
+    if (f['phone'].trim() && !/^[0-9+\-\s()]{7,30}$/.test(f['phone'].trim())) { this.errs['phone'] = 'Use 7–30 digits or phone symbols (+, -, spaces, parentheses).'; }
+    if (passwordBytes < 8 || passwordBytes > 72 || !/[A-Za-z]/.test(f['password']) || !/\d/.test(f['password'])) { this.errs['password'] = 'Use 8–72 bytes with at least one letter and one number.'; }
     if (f['password'] !== f['confirm']) { this.errs['confirm'] = 'Passwords do not match.'; }
     if (Object.keys(this.errs).length) { return; }
 
     this.busy = true;
-    const { confirm, ...body } = f;
+    const body = {
+      name,
+      email,
+      student_id: f['student_id'].trim(),
+      phone: f['phone'].trim(),
+      password: f['password'],
+    };
     this.api.register(body).subscribe({
       next: () => { this.busy = false; this.router.navigateByUrl('/tabs'); },
       error: e => { this.busy = false; this.errs = fieldErrors(e); this.error = Object.keys(this.errs).length ? '' : errorMessage(e); },

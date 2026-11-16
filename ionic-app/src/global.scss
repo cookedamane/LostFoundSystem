@@ -63,6 +63,7 @@ ion-thumbnail { --size: 58px; --border-radius: 11px; background: #daf1de; overfl
 .server-message { margin: .65rem 0 0; color: #163832; font-weight: 650; }
 .server-message.err { color: #8b2620; }
 .server-hint { margin: .5rem 0 1rem; color: #4d6b5d; font-size: .82rem; overflow-wrap: anywhere; }
+.registration-help { margin: -.45rem 0 1rem; font-size: .86rem; }
 .compact-brand { align-items: flex-start; gap: .8rem; margin-bottom: .85rem; }
 .compact-brand .brand-mark { width: 48px; height: 48px; flex-basis: 48px; border-radius: 15px; }
 .compact-brand .brand-mark svg { width: 29px; height: 29px; }

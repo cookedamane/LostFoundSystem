@@ -292,8 +292,15 @@ function register(): never
     if (q('SELECT 1 FROM users WHERE email = ?', [$email])->fetch()) {
         fail(409, 'That email is already registered.', ['email' => 'That email is already registered.']);
     }
-    q("INSERT INTO users (name, email, password, role, student_id, phone, is_active, created_at, updated_at) VALUES (?,?,?,'user',?,?,1,NOW(),NOW())",
-        [$name, $email, password_hash($pw, PASSWORD_BCRYPT), $sid ?: null, $phone ?: null]);
+    try {
+        q("INSERT INTO users (name, email, password, role, student_id, phone, is_active, created_at, updated_at) VALUES (?,?,?,'user',?,?,1,NOW(),NOW())",
+            [$name, $email, password_hash($pw, PASSWORD_BCRYPT), $sid ?: null, $phone ?: null]);
+    } catch (PDOException $e) {
+        if ($e->getCode() === '23000') {
+            fail(409, 'That email is already registered. Try signing in instead.', ['email' => 'That email is already registered. Try signing in instead.']);
+        }
+        throw $e;
+    }
     $id = (int) db()->lastInsertId();
     logAct($id, 'user_registered', $email);
     $u = q('SELECT * FROM users WHERE id = ?', [$id])->fetch();
