@@ -1,0 +1,26 @@
+# Local configuration and secrets
+**/.env
+**/.env.*
+!**/.env.example
+
+# Installed dependencies and generated web assets
+**/node_modules/
+**/vendor/
+**/.angular/
+**/.ionic/
+ionic-app/www/
+ionic-app/android/.gradle/
+ionic-app/android/**/build/
+ionic-app/android/local.properties
+lostfound-admin/bootstrap/cache/*.php
+lostfound-admin/storage/logs/*
+lostfound-admin/storage/framework/cache/data/*
+lostfound-admin/storage/framework/sessions/*
+lostfound-admin/storage/framework/views/*
+lostfound-admin/public/storage
+php-api/public/uploads/*
+
+# Local scratch files and Android deliverables
+tmp/
+*.apk
+*.aab

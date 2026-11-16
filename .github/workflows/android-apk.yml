@@ -1,0 +1,62 @@
+name: Build Android APK
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: android-apk-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build Ionic Android app
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out project
+        uses: actions/checkout@v7
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: ionic-app/package-lock.json
+
+      - name: Set up Java
+        uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: gradle
+          cache-dependency-path: ionic-app/android/**/*.gradle*
+
+      - name: Install Ionic dependencies
+        working-directory: ionic-app
+        run: npm ci
+
+      - name: Build Ionic web assets
+        working-directory: ionic-app
+        run: npm run build
+
+      - name: Sync Capacitor Android project
+        working-directory: ionic-app
+        run: npx cap sync android
+
+      - name: Build debug APK
+        working-directory: ionic-app/android
+        run: ./gradlew assembleDebug --no-daemon
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v7
+        with:
+          name: team-bangan-lostfound-debug-apk
+          path: ionic-app/android/app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
+          retention-days: 14
