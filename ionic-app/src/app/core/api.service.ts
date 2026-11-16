@@ -1,5 +1,6 @@
 import { HttpClient, HttpErrorResponse, HttpInterceptorFn } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
+import { Capacitor } from '@capacitor/core';
 import { CanActivateFn, Router } from '@angular/router';
 import { of, catchError, tap, throwError, timeout } from 'rxjs';
 import { environment } from '../../environments/environment';
@@ -18,13 +19,52 @@ export interface Claim extends MyClaim {
 
 const TOKEN_KEY = 'lf_token';
 const USER_KEY = 'lf_user';
+const API_URL_KEY = 'lf_api_url';
 export const getToken = () => localStorage.getItem(TOKEN_KEY);
 export const clearSession = () => { localStorage.removeItem(TOKEN_KEY); localStorage.removeItem(USER_KEY); };
 
 @Injectable({ providedIn: 'root' })
 export class ApiService {
   private http = inject(HttpClient);
-  private base = environment.apiUrl;
+  private base = this.readApiUrl();
+
+  private defaultApiUrl(): string {
+    if (!Capacitor.isNativePlatform() && typeof window !== 'undefined') {
+      return `${window.location.protocol}//${window.location.hostname}:8000/api`;
+    }
+    return environment.apiUrl;
+  }
+
+  private readApiUrl(): string {
+    return localStorage.getItem(API_URL_KEY) || this.defaultApiUrl();
+  }
+
+  get apiUrl(): string { return this.base; }
+
+  setApiUrl(value: string): string {
+    const url = new URL(value.trim());
+    if (!['http:', 'https:'].includes(url.protocol) || url.username || url.password || url.search || url.hash) {
+      throw new Error('Enter a plain HTTP or HTTPS server address, such as http://192.168.1.25:8000/api.');
+    }
+    let path = url.pathname.replace(/\/+$/, '');
+    if (!path.endsWith('/api')) path += '/api';
+    url.pathname = path;
+    this.base = url.toString().replace(/\/$/, '');
+    localStorage.setItem(API_URL_KEY, this.base);
+    return this.base;
+  }
+
+  resetApiUrl(): string {
+    localStorage.removeItem(API_URL_KEY);
+    this.base = this.defaultApiUrl();
+    return this.base;
+  }
+
+  testConnection() {
+    return this.http.get<{ ok: boolean; service?: string }>(`${this.base}/health`).pipe(timeout({ first: 5000 }));
+  }
+
+  isApiRequest(url: string): boolean { return url.startsWith(this.base); }
 
   get user(): User | null { return JSON.parse(localStorage.getItem(USER_KEY) || 'null'); }
   setUser(u: User) { localStorage.setItem(USER_KEY, JSON.stringify(u)); }
@@ -56,8 +96,9 @@ export class ApiService {
 // Adds the sign-in token to API calls and returns the user to the login page when it expires.
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
   const router = inject(Router);
+  const api = inject(ApiService);
   const token = getToken();
-  const call = token && req.url.startsWith(environment.apiUrl) ? req.clone({ setHeaders: { Authorization: `Bearer ${token}` } }) : req;
+  const call = token && api.isApiRequest(req.url) ? req.clone({ setHeaders: { Authorization: `Bearer ${token}` } }) : req;
   return next(call).pipe(
     catchError((e: HttpErrorResponse) => {
       if (e.status === 401 && token && !req.url.endsWith('/login')) { clearSession(); router.navigateByUrl('/login'); }

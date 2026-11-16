@@ -7,6 +7,15 @@ echo Checking XAMPP MySQL on 127.0.0.1:3306...
 if errorlevel 1 (
   echo MySQL is stopped. Starting it in a separate window; account actions need MySQL to finish starting.
   start "Lost and Found MySQL - keep open" /D "C:\xampp" "C:\xampp\mysql_start.bat"
+  echo Waiting up to 30 seconds for MySQL...
+  for /L %%N in (1,1,30) do (
+    "C:\xampp\mysql\bin\mysqladmin.exe" --host=127.0.0.1 --port=3306 --user=root ping >nul 2>&1
+    if not errorlevel 1 goto mysql_ready
+    timeout /t 1 /nobreak >nul
+  )
+  echo MySQL did not become ready. Check the XAMPP Control Panel and MySQL logs, then run this file again.
+  pause
+  exit /b 1
 )
 
 :mysql_ready
@@ -22,9 +31,9 @@ start "Lost and Found App - keep open" /D "%ROOT%ionic-app" cmd /k "C:\xampp\php
 
 echo Started the API, admin, and app in separate windows.
 echo Admin: http://127.0.0.1:8001
-echo App (phone hotspot): http://192.168.137.1:4200
-echo App (PC Wi-Fi):      http://192.168.1.109:4200
+echo App (PC):            http://127.0.0.1:4200
+echo App (phone):         use laptop IPv4 from ipconfig on port 4200
 echo API:   http://127.0.0.1:8000/api/health
-echo Phone API (hotspot): http://192.168.137.1:8000/api
+echo Phone API:           http://laptop-ip:8000/api
 echo Wait for the API health check to work before signing in. Keep all server windows open.
 pause

@@ -57,6 +57,12 @@ ion-thumbnail { --size: 58px; --border-radius: 11px; background: #daf1de; overfl
 .login-brand h1 { margin: 0; font-size: clamp(1.9rem, 8vw, 2.45rem); }
 .login-wrap { padding-top: clamp(2.2rem, 12vh, 7rem); }
 .login-intro { margin: 0 0 1.5rem; max-width: 34ch; }
+.server-card { margin: 1rem 0 1.25rem; padding: 1rem; border: 1px solid #8eb69b; border-radius: 15px; background: rgba(255,255,255,.78); }
+.server-card h2 { margin: 0 0 .4rem; }
+.server-card p { font-size: .88rem; }
+.server-message { margin: .65rem 0 0; color: #163832; font-weight: 650; }
+.server-message.err { color: #8b2620; }
+.server-hint { margin: .5rem 0 1rem; color: #4d6b5d; font-size: .82rem; overflow-wrap: anywhere; }
 .compact-brand { align-items: flex-start; gap: .8rem; margin-bottom: .85rem; }
 .compact-brand .brand-mark { width: 48px; height: 48px; flex-basis: 48px; border-radius: 15px; }
 .compact-brand .brand-mark svg { width: 29px; height: 29px; }

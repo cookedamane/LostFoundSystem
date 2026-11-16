@@ -107,7 +107,7 @@ The Laravel **Reports → Download database backup** is not a full phpMyAdmin ex
 
 ## 5. Phone network and APK
 
-The APK uses the API address in `ionic-app\src\environments\environment.prod.ts`. The current build expects `http://192.168.137.1:8000/api`, which is the usual Windows Mobile Hotspot address. If the teammate's PC has a different hotspot/LAN IP, update the API URL in both `environment.ts` and `environment.prod.ts`, and add the app origin to `CORS_ALLOWED_ORIGINS` in the API `.env`. Rebuild the app or download a new APK from GitHub Actions after pushing the environment change.
+The APK starts with the address in `ionic-app\src\environments\environment.prod.ts`. Its login screen lets the user enter and test `http://<their-PC-ip>:8000/api`; the address is saved on the phone and can be changed after network changes without rebuilding. On phone browser, open `http://<their-PC-ip>:4200`; the app derives its API host from the page address. The API accepts browser app origins on the same host at port `4200`; Capacitor origins remain controlled by `CORS_ALLOWED_ORIGINS` in the API `.env`.
 
 The phone and PC must be on the same trusted Wi-Fi/hotspot, and the PHP API must be running on the PC. GitHub Actions builds the APK but does not host the database or API. Check `http://<PC-IP>:8000/api/health` from the phone before trying to sign in. Allow the app/API ports only on a trusted Private network if Windows Firewall blocks local connections.
 

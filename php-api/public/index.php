@@ -27,14 +27,24 @@ header('Vary: Origin');
 header('X-Content-Type-Options: nosniff');
 header('Referrer-Policy: no-referrer');
 $origin = $_SERVER['HTTP_ORIGIN'] ?? '';
-$allowedOrigins = array_filter(array_map('trim', explode(',', cfg('CORS_ALLOWED_ORIGINS', 'http://192.168.137.1:4200,http://192.168.1.109:4200,http://127.0.0.1:4200,http://localhost:4200,http://localhost,capacitor://localhost'))));
-if ($origin !== '' && in_array($origin, $allowedOrigins, true)) {
+$allowedOrigins = array_filter(array_map('trim', explode(',', cfg('CORS_ALLOWED_ORIGINS', 'http://127.0.0.1:4200,http://localhost:4200,http://localhost,capacitor://localhost'))));
+$originAllowed = $origin !== '' && in_array($origin, $allowedOrigins, true);
+if (! $originAllowed && $origin !== '') {
+    $originParts = parse_url($origin);
+    $apiHost = parse_url('http://' . ($_SERVER['HTTP_HOST'] ?? ''), PHP_URL_HOST);
+    $originAllowed = is_array($originParts)
+        && in_array(strtolower($originParts['scheme'] ?? ''), ['http', 'https'], true)
+        && (int) ($originParts['port'] ?? 0) === 4200
+        && is_string($apiHost)
+        && strcasecmp($originParts['host'] ?? '', $apiHost) === 0;
+}
+if ($originAllowed) {
     header('Access-Control-Allow-Origin: ' . $origin);
     header('Access-Control-Allow-Headers: Authorization, Content-Type');
     header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');
 }
 if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'OPTIONS') {
-    if ($origin !== '' && !in_array($origin, $allowedOrigins, true)) { fail(403, 'This app origin is not allowed.'); }
+    if ($origin !== '' && ! $originAllowed) { fail(403, 'This app origin is not allowed.'); }
     http_response_code(204);
     exit;
 }

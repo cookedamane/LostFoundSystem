@@ -1,6 +1,7 @@
 import { Component, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
+import { Capacitor } from '@capacitor/core';
 import { IonButton, IonContent, IonInput, IonSpinner } from '@ionic/angular/standalone';
 import { ApiService } from '../core/api.service';
 import { errorMessage } from '../core/ui';
@@ -17,6 +18,19 @@ import { errorMessage } from '../core/ui';
         <span><p class="eyebrow">TEAM BANGAN</p><h1>Lost &amp; Found</h1></span>
       </div>
       <p class="muted login-intro">Report what you lost. Claim what you left behind.</p>
+      @if (nativeApp) {
+        <section class="server-card" aria-label="Laptop server connection">
+          <h2>Connect to your laptop</h2>
+          <p class="muted">Use the laptop's current Wi-Fi or hotspot IPv4 address. Example: http://192.168.1.25:8000/api</p>
+          <div class="field"><ion-input label="API server address" labelPlacement="stacked" fill="outline" type="url" name="apiUrl" [(ngModel)]="apiUrl"></ion-input></div>
+          <ion-button expand="block" fill="outline" type="button" [disabled]="checkingServer" (click)="checkServer()">
+            @if (checkingServer) { <ion-spinner name="dots"></ion-spinner> } @else { Test connection }
+          </ion-button>
+          @if (serverMessage) { <p class="server-message" [class.err]="!serverConnected">{{ serverMessage }}</p> }
+        </section>
+      } @else {
+        <p class="server-hint">API server: {{ apiUrl }}</p>
+      }
       <form (ngSubmit)="submit()" novalidate>
         <div class="field"><ion-input label="Email" labelPlacement="stacked" fill="outline" type="email" name="email" autocomplete="email" [(ngModel)]="email"></ion-input></div>
         <div class="field"><ion-input label="Password" labelPlacement="stacked" fill="outline" type="password" name="password" autocomplete="current-password" [(ngModel)]="password"></ion-input></div>
@@ -36,6 +50,28 @@ export class LoginPage {
   password = '';
   error = '';
   busy = false;
+  nativeApp = Capacitor.isNativePlatform();
+  apiUrl = this.api.apiUrl;
+  checkingServer = false;
+  serverConnected = false;
+  serverMessage = '';
+
+  checkServer() {
+    this.serverMessage = '';
+    try {
+      this.api.setApiUrl(this.apiUrl);
+    } catch (e) {
+      this.serverConnected = false;
+      this.serverMessage = e instanceof Error ? e.message : 'Enter a valid API address.';
+      return;
+    }
+    this.apiUrl = this.api.apiUrl;
+    this.checkingServer = true;
+    this.api.testConnection().subscribe({
+      next: r => { this.checkingServer = false; this.serverConnected = r.ok; this.serverMessage = r.ok ? 'Connected to the Lost and Found API.' : 'The server responded, but it did not confirm the API is ready.'; },
+      error: () => { this.checkingServer = false; this.serverConnected = false; this.serverMessage = 'Cannot reach the API. Check the laptop IP, port 8000, Wi-Fi, and that the API window is running.'; },
+    });
+  }
 
   submit() {
     this.error = '';
