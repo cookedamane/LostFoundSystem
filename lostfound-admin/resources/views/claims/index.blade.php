@@ -12,7 +12,7 @@
   <tr><td>{{ $c->item->name }}</td><td>{{ $c->user->name }}</td><td>{{ $c->created_at->format('M d, Y g:i A') }}</td>
     <td><span class="pill s-{{ $c->status }}">{{ ucfirst($c->status) }}</span></td>
     <td><a class="btn sm {{ $c->status === 'pending' && in_array(auth()->user()->role, ['admin', 'staff'], true) ? '' : 'alt' }}" href="{{ route('claims.show', $c) }}">{{ $c->status === 'pending' && in_array(auth()->user()->role, ['admin', 'staff'], true) ? 'Review' : 'View' }}</a></td></tr>
-  @empty <tr><td colspan="5" class="muted">No claims yet. They appear here when users claim a found item in the app.</td></tr> @endforelse
+  @empty <tr><td colspan="5" class="muted">No claims match this view. @if(!$hasClaimableFoundItems) Register a found item at a configured department location; users can then claim it in the app and the request will appear here. @else New app claims will appear here automatically when submitted. @endif</td></tr> @endforelse
 </table>
 @include('partials.pager', ['p' => $claims])
 <script>

@@ -19,7 +19,11 @@ class ClaimController extends Controller
         if ($r->filled('status')) {
             $q->where('status', $r->input('status'));
         }
-        return view('claims.index', ['claims' => $q->paginate(10)->withQueryString()]);
+        return view('claims.index', [
+            'claims' => $q->paginate(10)->withQueryString(),
+            'hasClaimableFoundItems' => Item::where('type', 'found')->where('status', 'listed')
+                ->whereIn('location', DepartmentSetting::locations())->exists(),
+        ]);
     }
 
     public function show(Claim $claim)
