@@ -1,4 +1,4 @@
-// Used by `npm start` from either this computer or another device on the LAN.
+// APK/browser fallback. The laptop's current address is printed by start-system.bat.
 export const environment = {
   apiUrl: 'http://192.168.137.1:8000/api',
 };

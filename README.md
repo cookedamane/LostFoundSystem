@@ -11,9 +11,9 @@ DepFind serves one configured campus department only. It covers that department�
 
 ## Phone quick access
 
-Start XAMPP MySQL, run `start-system.bat` once from the project folder, and leave its server windows open. Find the laptop's current shared Wi-Fi/hotspot IPv4 address using `ipconfig`, then open `http://<laptop-ip>:4200` on the phone. The browser app automatically targets the API on that same laptop address, port `8000`.
+Start XAMPP MySQL, run `start-system.bat` once from the project folder, and leave its server windows open. The script prints phone-ready links for each active private Wi-Fi/hotspot adapter. Use the links matching the network connected to the phone. The browser app automatically targets the API on the same laptop address, port `8000`.
 
-For an installed APK, use **Connect to your laptop** on the login screen. Enter `http://<laptop-ip>:8000/api` and tap **Test connection**. The address is saved on that phone and can be changed later without rebuilding the APK. Verify the API directly at `http://<laptop-ip>:8000/api/health`; it should return JSON with `"ok":true`. Keep both devices on the same Wi-Fi/hotspot.
+For an installed APK, use **Connect to your laptop** on the login screen. Copy the matching **APK API address** printed by `start-system.bat` (for example `http://192.168.137.1:8000/api` when the laptop hotspot is being used), then tap **Test connection**. The address is saved on that phone; if you switch networks, replace it with the matching address printed for the new Wi-Fi. Verify using the matching API health link. Keep both devices on the same Wi-Fi/hotspot.
 
 ## Run locally on Windows / XAMPP
 
@@ -32,7 +32,7 @@ Moving the project to a teammate's PC or copying the database? Follow [MIGRATION
 2. After updating the project, apply the Laravel database migrations once from `lostfound-admin` with `php artisan migrate`. This updates legacy staff roles and creates the department settings shared by the portal and API. Do not use `migrate:fresh` on a database with records.
 3. From the project root, run `start-system.bat`. It opens separate command windows for the API, admin site, and app. Keep those windows open while using the system. If the script reports that MySQL did not start, check the MySQL window and XAMPP logs.
 4. Confirm the API is available at <http://127.0.0.1:8000/api/health>. It should return JSON with `"ok":true`.
-5. Sign in as Admin at `http://127.0.0.1:8001`, open **Department settings**, and replace the placeholder department/building/pickup values with the actual assigned locations before using the app. Open the app at `http://127.0.0.1:4200`; on a phone use `http://<laptop-ip>:4200`.
+5. Sign in as Admin at `http://127.0.0.1:8001`, open **Department settings**, and replace the placeholder department/building/pickup values with the actual assigned locations before using the app. On a phone, use the `Phone browser` link printed by `start-system.bat`.
 
 If the windows are already open, do not launch a second copy on the same ports. Stop the old server with `Ctrl+C` in its window before restarting it.
 
@@ -67,10 +67,10 @@ The workflow at `.github/workflows/android-apk.yml` builds the Ionic Android deb
 
 The APK starts with the default API address from `ionic-app/src/environments/environment.prod.ts`, and its login screen lets the user set and test the current laptop API address. GitHub Actions builds the app package; it does not host the API or database.
 
-The browser app derives the API host from the address used to open the app, so use `http://<laptop-ip>:4200` on the phone. `127.0.0.1` on the phone means the phone itself, not the laptop.
+The browser app derives the API host from the address used to open the app, so use the `Phone browser` address printed by `start-system.bat`. `127.0.0.1` on the phone means the phone itself, not the laptop.
 
 1. Connect the phone and PC to the same trusted Wi-Fi network.
-2. Run `ipconfig` on the PC and find the IPv4 address of the adapter shared with the phone. Use that address to open the browser app. In the APK, enter `http://<laptop-ip>:8000/api` on its login screen and tap **Test connection**.
+2. Read the phone links printed by `start-system.bat`. Use the `Phone browser` URL on the phone. In the APK, enter the matching `APK API address` on its login screen and tap **Test connection**. If the script lists several adapters, choose the one on the same Wi-Fi/hotspot as the phone.
 3. Start the system with `start-system.bat`. The API listens on `0.0.0.0:8000` and Ionic listens on `0.0.0.0:4200` for phone browser access.
 4. If Windows Firewall blocks the connection, allow inbound TCP ports `8000` and `4200` only on the Private profile and local subnet. Do not expose the development servers to public networks.
 5. From `ionic-app`, build and sync the Android app:
@@ -121,12 +121,12 @@ Use general, non-sensitive descriptions for public found-item listings. Do not p
 | Symptom | Check |
 | --- | --- |
 | App displays “Cannot reach the server” | Confirm the API command window is still open and `http://127.0.0.1:8000/api/health` responds. Check the LAN address in `environment.ts`, then restart `npm.cmd start` and reload the page. |
-| Sign-in or registration says the server did not respond | Keep the API window open. For the APK, set `http://<laptop-ip>:8000/api` on the login screen and test it. For phone browser, open `http://<laptop-ip>:4200`. |
+| Sign-in or registration says the server did not respond | Keep the API window open. Copy the matching `APK API address` printed by `start-system.bat` into the APK login screen and test it. For phone browser, open its matching `Phone browser` link. |
 | API responds but sign-in/registration says the database is unavailable | Start MySQL in XAMPP and wait until it is running on port `3306`. The API now returns HTTP 503 with a clear database message if MySQL is down. |
 | App shows a CORS/network error after changing network | Confirm both devices use the same trusted network and restart the API after `.env` edits. Browser app origins on the same host and port `4200` are accepted automatically. |
 | Health endpoint works, but sign-in/register fails | Confirm MySQL is running on port `3306`, `lost_found_db` exists, and Laravel/API `.env` values point to the same database. Inspect the PHP API command window for database errors. |
 | XAMPP says port `3306` is in use | Another MySQL/MariaDB process owns the port. Do not start multiple servers; identify the service and use one database server consistently. |
-| Phone cannot reach the API | Open `http://<laptop-ip>:8000/api/health` on the phone. Confirm the API window is running on `0.0.0.0:8000`, both devices are on the same Wi-Fi, and Windows Firewall permits local Private-network access. |
+| Phone cannot reach the API | Open the matching `API health check` link printed by `start-system.bat` on the phone. Confirm the API window is running on `0.0.0.0:8000`, both devices are on the same Wi-Fi/hotspot, and Windows Firewall permits local Private-network access. |
 | Port already in use | Stop the old server window with `Ctrl+C`, then restart only one copy of that service. |
 | Build fails after a dependency change | Run `npm.cmd install`, then `npm.cmd run build` from `ionic-app`; read the first Angular/TypeScript error rather than the later cascade. |
 
