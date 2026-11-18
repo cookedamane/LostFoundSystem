@@ -13,7 +13,7 @@ import { Notice, errorMessage, fieldErrors } from '../core/ui';
   <ion-header><ion-toolbar><ion-title>Profile</ion-title></ion-toolbar></ion-header>
   <ion-content class="ion-padding">
     <div class="wrap">
-      <div class="card profile-summary"><span class="profile-avatar" aria-hidden="true">{{ initials }}</span><div><p class="profile-email"><b>{{ email }}</b></p><p class="muted">Student ID: {{ studentId || 'Not set' }}</p></div></div>
+      <div class="card profile-summary"><span class="profile-avatar" aria-hidden="true">{{ initials }}</span><div><p class="profile-email"><b>{{ email }}</b></p><p class="muted">Student / employee ID: {{ studentId || 'Not set' }}</p></div></div>
 
       <h2 class="section-heading">Your details</h2>
       <form (ngSubmit)="save()" novalidate>

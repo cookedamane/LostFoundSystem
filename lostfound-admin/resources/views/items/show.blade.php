@@ -2,7 +2,7 @@
 @section('title', $item->name)
 @section('content')
 <div class="bar"><h1>{{ $item->name }}</h1>
-  @if(in_array(auth()->user()->role, ['admin', 'officer'], true))
+  @if(in_array(auth()->user()->role, ['admin', 'staff'], true))
   <div><a class="btn alt" href="{{ route('items.edit', $item) }}">Edit</a>
   @if(auth()->user()->role === 'admin')<form style="display:inline" method="POST" action="{{ route('items.destroy', $item) }}" onsubmit="return confirm('Delete this item and its claims?')">@csrf @method('DELETE')<button class="btn red">Delete</button></form>@endif</div>@endif</div>
 <div class="row">
@@ -11,7 +11,7 @@
       <dt>Type</dt><dd><span class="pill t-{{ $item->type }}">{{ ucfirst($item->type) }}</span></dd>
       <dt>Status</dt><dd><span class="pill s-{{ $item->status }}">{{ ucfirst($item->status) }}</span></dd>
       <dt>Category</dt><dd>{{ $item->category->name }}</dd>
-      <dt>Location</dt><dd>{{ $item->location }}</dd>
+      <dt>Department location</dt><dd>{{ $item->location }}</dd><dt>Pickup location</dt><dd>{{ \App\Models\DepartmentSetting::value('pickup_location', config('depfind.pickup_location')) }}</dd>
       <dt>Date</dt><dd>{{ $item->date_event->format('F d, Y') }}</dd>
       <dt>Reported by</dt><dd>{{ $item->reporter?->name ?? 'Unknown' }} @if($item->reporter?->student_id)<span class="muted">({{ $item->reporter->student_id }})</span>@endif</dd>
       <dt>Description</dt><dd>{{ $item->description }}</dd>
@@ -22,7 +22,7 @@
     @if($item->photo_url)<img class="photo" src="{{ $item->photo_url }}" alt="Photo of {{ $item->name }}">@else<p class="muted">No photo.</p>@endif
   </div>
 </div>
-@if(in_array(auth()->user()->role, ['admin', 'officer'], true))
+@if(in_array(auth()->user()->role, ['admin', 'staff'], true))
 <form class="card" method="POST" action="{{ route('items.status', $item) }}">
   @csrf @method('PATCH')
   <h2>Process this {{ $item->type }} item</h2>

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\ActivityLog;
 use App\Models\Claim;
+use App\Models\DepartmentSetting;
 use App\Models\Item;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -19,7 +20,7 @@ class ReportController extends Controller
     private function items(Request $r)
     {
         [$from, $to] = $this->range($r);
-        return Item::with('category')->when($from, fn ($q) => $q->whereDate('date_event', '>=', $from))
+        return Item::with('category')->whereIn('location', DepartmentSetting::locations())->when($from, fn ($q) => $q->whereDate('date_event', '>=', $from))
             ->when($to, fn ($q) => $q->whereDate('date_event', '<=', $to))->orderBy('date_event', 'desc');
     }
 
@@ -27,7 +28,8 @@ class ReportController extends Controller
     {
         $items = $this->items($r)->get();
         [$from, $to] = $this->range($r);
-        $claims = Claim::when($from, fn ($q) => $q->whereDate('created_at', '>=', $from))->when($to, fn ($q) => $q->whereDate('created_at', '<=', $to));
+        $locations = DepartmentSetting::locations();
+        $claims = Claim::whereHas('item', fn ($q) => $q->whereIn('location', $locations))->when($from, fn ($q) => $q->whereDate('created_at', '>=', $from))->when($to, fn ($q) => $q->whereDate('created_at', '<=', $to));
 
         return view('reports.index', [
             'items' => $items,
@@ -53,7 +55,7 @@ class ReportController extends Controller
                 }
             } else {
                 fputcsv($out, ['ID', 'Item', 'Claimant', 'Student ID', 'Status', 'Submitted', 'Reviewed', 'Remarks']);
-                foreach (Claim::with(['item', 'user'])->latest()->get() as $c) {
+                foreach (Claim::with(['item', 'user'])->whereHas('item', fn ($q) => $q->whereIn('location', DepartmentSetting::locations()))->latest()->get() as $c) {
                     fputcsv($out, [$c->id, $c->item->name, $c->user->name, $c->user->student_id, $c->status, $c->created_at, $c->reviewed_at, $c->admin_remarks]);
                 }
             }
@@ -69,10 +71,10 @@ class ReportController extends Controller
         return response()->streamDownload(function () {
             $out = fopen('php://output', 'w');
             $pdo = DB::getPdo();
-            fwrite($out, "-- TEAM BANGAN Lost and Found backup\nSET FOREIGN_KEY_CHECKS=0;\n");
-            foreach (['users', 'categories', 'items', 'claims', 'activity_logs'] as $t) {
+            fwrite($out, "-- DepFind Department Lost and Found backup\nSET FOREIGN_KEY_CHECKS=0;\n");
+            foreach (['users', 'categories', 'items', 'claims', 'activity_logs', 'department_settings'] as $t) {
                 fwrite($out, "DELETE FROM `$t`;\n");
-                DB::table($t)->orderBy('id')->chunk(200, function ($rows) use ($out, $t, $pdo) {
+                DB::table($t)->orderBy($t === 'department_settings' ? 'setting_key' : 'id')->chunk(200, function ($rows) use ($out, $t, $pdo) {
                     foreach ($rows as $row) {
                         $row = (array) $row;
                         $cols = implode(',', array_map(fn ($c) => "`$c`", array_keys($row)));

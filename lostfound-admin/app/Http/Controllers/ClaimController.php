@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\ActivityLog;
 use App\Models\Claim;
+use App\Models\DepartmentSetting;
 use App\Models\Item;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -14,7 +15,7 @@ class ClaimController extends Controller
     {
         // ID is a deterministic tie-breaker because MySQL NOW() timestamps can match
         // when multiple app claims are submitted within the same second.
-        $q = Claim::with(['item', 'user'])->orderByDesc('created_at')->orderByDesc('id');
+        $q = Claim::with(['item', 'user'])->whereHas('item', fn ($items) => $items->whereIn('location', DepartmentSetting::locations()))->orderByDesc('created_at')->orderByDesc('id');
         if ($r->filled('status')) {
             $q->where('status', $r->input('status'));
         }
@@ -23,11 +24,13 @@ class ClaimController extends Controller
 
     public function show(Claim $claim)
     {
+        abort_unless(in_array($claim->item->location, DepartmentSetting::locations(), true), 404);
         return view('claims.show', ['claim' => $claim->load(['item.category', 'user', 'reviewer'])]);
     }
 
     public function decide(Request $r, Claim $claim)
     {
+        abort_unless(in_array($claim->item->location, DepartmentSetting::locations(), true), 404);
         $data = $r->validate(['decision' => 'required|in:approve,reject', 'admin_remarks' => 'nullable|string|max:1000']);
         if ($data['decision'] === 'reject' && blank($data['admin_remarks'] ?? null)) {
             return back()->withErrors(['admin_remarks' => 'Give a reason so the user knows what to fix.']);

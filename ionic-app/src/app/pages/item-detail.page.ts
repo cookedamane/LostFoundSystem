@@ -34,7 +34,7 @@ import { Notice, errorMessage, fieldErrors, label, niceDate } from '../core/ui';
           <div class="card">
             <h2>Your claim</h2>
             <p><span class="tag" [class]="'tag s-' + myClaim.status">{{ label(myClaim.status) }}</span></p>
-            @if (myClaim.status === 'approved') { <p>Your claim was approved. Bring a valid ID to the Lost and Found office to pick up the item.</p> }
+            @if (myClaim.status === 'approved') { <p>Your claim was approved. Bring a valid ID and arrange pickup at {{ myClaim.pickup_location || 'the department Lost and Found desk' }}.</p> }
             @if (myClaim.admin_remarks) { <div class="remark">{{ myClaim.admin_remarks }}</div> }
           </div>
         } @else if (item.status === 'listed') {

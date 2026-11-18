@@ -1,4 +1,4 @@
-# TEAM BANGAN Lost and Found Management System
+# DepFind: Department-Based Lost and Found Management System
 
 This project contains three connected parts that use the same MySQL database:
 
@@ -7,7 +7,7 @@ Student Ionic app  -> PHP JSON API  -> MySQL lost_found_db
 Staff Laravel web  -----------------> MySQL lost_found_db
 ```
 
-Students register and sign in through the app. Staff sign in through the admin website. The API rejects admin sign-ins; the website rejects student accounts.
+DepFind serves one configured campus department only. It covers that department’s buildings and designated collection point; it is not a campus-wide service and does not transport items between departments. Students and employees register and sign in through the app. Admins and Staff sign in through the Laravel portal.
 
 ## Phone quick access
 
@@ -29,9 +29,10 @@ Moving the project to a teammate's PC or copying the database? Follow [MIGRATION
 ### Start the system
 
 1. Start MySQL in the XAMPP Control Panel and leave it running. The application uses port `3306` and the `root` account with a blank password by default. If XAMPP reports that port `3306` is occupied, identify the existing MySQL service before starting another one.
-2. From the project root, run `start-system.bat`. It opens separate command windows for the API, admin site, and app. Keep those windows open while using the system. If the script reports that MySQL did not start, check the MySQL window and XAMPP logs.
-3. Confirm the API is available at <http://127.0.0.1:8000/api/health>. It should return JSON with `"ok":true`.
-4. Open the user app on the PC at `http://127.0.0.1:4200`. On a phone, use `http://<laptop-ip>:4200`, where `<laptop-ip>` is the current shared adapter IPv4 address from `ipconfig`. The admin site is at `http://127.0.0.1:8001`.
+2. After updating the project, apply the Laravel database migrations once from `lostfound-admin` with `php artisan migrate`. This updates legacy staff roles and creates the department settings shared by the portal and API. Do not use `migrate:fresh` on a database with records.
+3. From the project root, run `start-system.bat`. It opens separate command windows for the API, admin site, and app. Keep those windows open while using the system. If the script reports that MySQL did not start, check the MySQL window and XAMPP logs.
+4. Confirm the API is available at <http://127.0.0.1:8000/api/health>. It should return JSON with `"ok":true`.
+5. Sign in as Admin at `http://127.0.0.1:8001`, open **Department settings**, and replace the placeholder department/building/pickup values with the actual assigned locations before using the app. Open the app at `http://127.0.0.1:4200`; on a phone use `http://<laptop-ip>:4200`.
 
 If the windows are already open, do not launch a second copy on the same ports. Stop the old server with `Ctrl+C` in its window before restarting it.
 
@@ -42,24 +43,21 @@ If the windows are already open, do not launch a second copy on the same ports. 
 | Admin (website only) | `admin@lostfound.test` | `Admin@12345` |
 | Student (app only) | `student@lostfound.test` | `Student@12345` |
 
-These are development/demo credentials. Change them before using real student or item data. Students create their own accounts in the app; admins create staff accounts from **Users** in the admin site.
+These are development/demo credentials. Change them before using real student or item data. Students and employees create their own accounts in the app; Admins create Staff accounts from **Accounts** in the admin site.
 
-## Staff roles and permissions
+## Roles and permissions
 
-Students (`user`) register and sign in only in the mobile app. The web portal accepts active staff accounts only. **Only an Administrator can open Users, activate/deactivate accounts, reset passwords, delete accounts, and create staff accounts with a selected role.** No other staff role needs the account directory: Registrars verify a claimant from the claim record, while Officers and IT Administrators use their own workflow screens. Student accounts cannot be created from the web form. The server checks role permissions on every protected route; hiding a menu link is not the security control.
+Only three roles are used. Server-side middleware enforces access on every protected portal route.
 
-| Stakeholder role | Admin-site access | Purpose in the workflow |
-| --- | --- | --- |
-| Administrator (`admin`) | All modules, including Users, Categories, Reports, backup, and activity log | Manages staff access and system configuration and oversees lost/found, claim, decision, and return records. |
-| Lost and Found Officer (`officer`) | Items, claims, and reports | Reviews student lost reports, manages item records, reviews ownership proof, records claim decisions, and marks physical returns. |
-| Security Personnel (`security`) | View item list and register found items | Records property received by security and helps preserve found-item custody. Cannot edit/delete items, decide claims, manage accounts, or change categories. |
-| Registrar (`registrar`) | Read-only claims and claimant details | Supports identity/student-record verification for a claim. Cannot approve/reject claims or administer user accounts. |
-| IT Administrator (`it_admin`) | Dashboard, database backup, and activity log | Supports technical continuity and audits staff actions. Cannot access user management or make claim decisions. |
-| Student (`user`) | No staff-site access | Self-registers in the Ionic app, reports lost property, searches found items, submits claims, and checks claim/return status. |
+| Role | Access and purpose |
+| --- | --- |
+| Admin (`admin`) | Manages staff accounts, department locations and pickup settings, categories, backups, and activity records; can review all items and claims. |
+| Staff (`staff`) | Records and updates department found items, reviews claims, records decisions and returns, and coordinates pickup at the department’s collection point. Cannot manage accounts or system settings. |
+| User (`user`) | Students and employees use the app to report items lost within the department, browse its found-item listings, submit claims, and follow claim/return status. No Laravel portal access. |
 
-An Administrator creates staff accounts under **Users → Create staff account**, selects one of the stakeholder roles, and provides a unique email and password. The role takes effect immediately. Existing Administrator and Student accounts keep their current roles when the role migration is applied.
+An Admin creates Staff accounts under **Accounts → Create staff account**. The migration `2026_11_19_000001_consolidate_depfind_roles` maps legacy Officer, Security, Registrar, and IT Administrator accounts to Staff, preserving their accounts and history while removing the old role types. Existing Admin and User accounts keep their roles.
 
-An Administrator can delete an account from **Users**. Deletion blocks future sign-in, revokes mobile API tokens, erases the account's profile and claimant-entered ownership details, and preserves related item/claim statuses and audit history with the account anonymized. The current signed-in Administrator and the last active Administrator cannot be deleted. This is intended to protect the record of decisions and returns while removing the person's account data.
+An Administrator can delete an account from **Accounts**. Deletion blocks future sign-in, revokes mobile API tokens, erases the account's profile and claimant-entered ownership details, and preserves related item/claim statuses and audit history with the account anonymized. The current signed-in Administrator and the last active Administrator cannot be deleted.
 
 ## Phone and APK setup
 
@@ -89,11 +87,13 @@ The browser app derives the API host from the address used to open the app, so u
 
 ## Day-to-day workflow
 
-1. A student registers or signs in, then searches the listed found items.
-2. To report a lost item, submit its name, category, date, location, description, and optional photo. The report appears in **Items** for staff review.
+1. A student or employee registers or signs in, then searches found items from the configured department locations.
+2. To report a lost item, choose a department building/area and submit its name, category, date, description, and optional photo. Locations outside the configured list are rejected by both the app API and staff portal. The report appears in **Department items** for staff review.
 3. To claim a found item, open its details and provide proof of ownership. The request appears in **Claims**.
-4. Staff review the report or claim and set the decision/status with clear remarks. Students can refresh **Activity** to see the latest status and remarks.
-5. When the item is physically handed to its owner, staff open the approved claim and choose **Mark item as returned**. This records the final returned status.
+4. Staff review the report or claim and set the decision/status with clear remarks. Students see status updates in **Activity**.
+5. When the owner collects the item at the designated collection point, staff open the approved claim and choose **Mark item as returned**. This records the return; DepFind does not transport items between departments.
+
+Admins can set the department name, its allowed buildings/areas, and its designated pickup point in **Department settings**. Configure these values before use; the initial defaults are placeholders.
 
 Use general, non-sensitive descriptions for public found-item listings. Do not put personal contact details, serial numbers, or all identifying details in a found-item description; ask the claimant to provide distinguishing proof privately in the claim form.
 
@@ -109,7 +109,7 @@ Use general, non-sensitive descriptions for public found-item listings. Do not p
 
 ## Configuration reference
 
-- Laravel database and session settings: `lostfound-admin/.env`. `lostfound-admin/.env.lostfound` is the project template.
+- Laravel database and session settings: `lostfound-admin/.env`; see `lostfound-admin/.env.example` for DepFind environment keys. The Admin **Department settings** page stores the department name, allowed locations, and collection point in the shared database.
 - API database settings: `php-api/.env` if present; otherwise the API defaults to MySQL on `127.0.0.1:3306`, database `lost_found_db`, user `root`, blank password.
 - API browser-origin allowlist: `CORS_ALLOWED_ORIGINS` in `php-api/.env`; browser apps on the same host at port `4200` are accepted automatically, while Capacitor origins use the configured allowlist.
 - Browser app API URL: `ionic-app/src/environments/environment.ts`.
@@ -134,8 +134,8 @@ Use general, non-sensitive descriptions for public found-item listings. Do not p
 
 | Area | Implementation |
 | --- | --- |
-| Database | `lostfound-admin/database/migrations/2026_11_01_000001_create_lost_found_tables.php`; users, categories, items, claims, activity logs, and API tokens. |
-| Admin web | Laravel controllers, models, routes, and Blade pages under `lostfound-admin/`. Includes item and category management, claims, user accounts, reports/CSV, and SQL backup. |
+| Database | Laravel migrations under `lostfound-admin/database/migrations/`; includes users, categories, department-scoped items and claims, department settings, activity logs, and API tokens. |
+| Admin web | Laravel controllers, models, routes, and Blade pages under `lostfound-admin/`. Includes Admin/Staff permissions, department settings, scoped item/claim management, reports/CSV, and SQL backup. |
 | Student app | Standalone Ionic/Angular pages under `ionic-app/src/app/pages/`; registration/login, search, lost reports, claims, activity, profile, and password change. |
 | API | `php-api/public/index.php`; JSON endpoints, token auth, validation, and prepared SQL statements. |
 | Security | Separate role-specific sign-in, password hashes, expiring hashed tokens, rate limiting/lockout, CSRF-protected Laravel forms, validation, and photo type/size checks. |

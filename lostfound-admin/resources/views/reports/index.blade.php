@@ -5,13 +5,13 @@
   <span class="report-print-logo" aria-hidden="true">
     <svg viewBox="0 0 32 32" fill="none"><path d="M16 3.5 27 8v7.1c0 6.7-4.4 11.2-11 13.4C10.4 26.3 6 21.8 6 15.1V8l10-4.5Z" stroke="currentColor" stroke-width="1.8"/><path d="M12.2 16.1h7.6M16 12.3v7.6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>
   </span>
-  <div><strong>TEAM BANGAN</strong><h1>Lost and Found Management System</h1><p>Items and claims report</p></div>
+  <div><strong>DepFind · {{ \App\Models\DepartmentSetting::value('department_name', config('depfind.department')) }}</strong><h1>Department Lost and Found</h1><p>Department items and claims report</p></div>
 </header>
 <div class="bar"><h1>Reports</h1>
   <div class="noprint"><button class="btn alt" onclick="window.print()">Print</button>
   <a class="btn alt" href="{{ route('reports.export', ['what' => 'items'] + request()->query()) }}">Items CSV</a>
   <a class="btn alt" href="{{ route('reports.export', ['what' => 'claims']) }}">Claims CSV</a>
-  @if(in_array(auth()->user()->role, ['admin', 'it_admin'], true))<a class="btn" href="{{ route('backup') }}">Download database backup</a>@endif</div></div>
+  @if(auth()->user()->role === 'admin')<a class="btn" href="{{ route('backup') }}">Download database backup</a>@endif</div></div>
 <form class="filters noprint" method="GET">
   <input type="date" name="from" value="{{ $from }}" aria-label="From date"><input type="date" name="to" value="{{ $to }}" aria-label="To date"><button class="btn alt">Apply dates</button>
 </form>

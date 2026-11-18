@@ -18,7 +18,7 @@ class AuthController extends Controller
         $cred = $request->validate(['email' => 'required|email|max:150', 'password' => 'required|string|max:72']);
 
         // Staff use the web portal. Students (role=user) sign in through the mobile app.
-        if (Auth::attempt($cred + ['is_active' => 1]) && in_array(Auth::user()->role, ['admin', 'officer', 'security', 'registrar', 'it_admin'], true)) {
+        if (Auth::attempt($cred + ['is_active' => 1]) && in_array(Auth::user()->role, ['admin', 'staff'], true)) {
             $request->session()->regenerate();
             ActivityLog::record('staff_login', Auth::user()->role);
             return redirect()->intended(route('dashboard'));

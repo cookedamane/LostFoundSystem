@@ -14,10 +14,10 @@ import { errorMessage, fieldErrors } from '../core/ui';
     <div class="wrap">
       <div class="login-brand compact-brand">
         <span class="brand-mark" aria-hidden="true"><svg viewBox="0 0 32 32" fill="none"><path d="M16 3.5 27 8v7.1c0 6.7-4.4 11.2-11 13.4C10.4 26.3 6 21.8 6 15.1V8l10-4.5Z" stroke="currentColor" stroke-width="1.8"/><path d="M12.2 16.1h7.6M16 12.3v7.6" stroke="#235347" stroke-width="2.2" stroke-linecap="round"/></svg></span>
-        <span><p class="eyebrow">TEAM BANGAN</p><h1>Create your account</h1></span>
+        <span><p class="eyebrow">DEPARTMENT LOST &amp; FOUND</p><h1>Create your account</h1></span>
       </div>
       <p class="muted">You need an account to report items and send claims.</p>
-      <p class="muted registration-help">Use a unique email address. Passwords must be 8–72 characters and include at least one letter and one number. Student ID and phone are optional.</p>
+      <p class="muted registration-help">Use a unique email address. Passwords must be 8–72 characters and include at least one letter and one number. Student/employee ID and phone are optional.</p>
       <form (ngSubmit)="submit()" novalidate>
         @for (f of fields; track f.key) {
           <div class="field">
@@ -40,7 +40,7 @@ export class RegisterPage {
   fields = [
     { key: 'name', label: 'Full name', type: 'text' },
     { key: 'email', label: 'Email', type: 'email' },
-    { key: 'student_id', label: 'Student ID (optional)', type: 'text' },
+    { key: 'student_id', label: 'Student / employee ID (optional)', type: 'text' },
     { key: 'phone', label: 'Phone (optional)', type: 'tel' },
     { key: 'password', label: 'Password (8+ characters, letters and numbers)', type: 'password' },
     { key: 'confirm', label: 'Confirm password', type: 'password' },

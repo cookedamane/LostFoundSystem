@@ -32,7 +32,7 @@ import { Notice, errorMessage, label, niceDate } from '../core/ui';
         <div class="card activity-card">
           <div class="activity-title"><a [routerLink]="['/item', c.item_id]"><b>{{ c.item_name }}</b></a> <span class="tag" [class]="'tag s-' + c.status">{{ label(c.status) }}</span></div>
           <p class="muted">Sent {{ date(c.created_at) }}</p>
-          @if (c.status === 'approved') { <p>Approved. Bring a valid ID to the Lost and Found office.</p> }
+          @if (c.status === 'approved') { <p>Approved. Bring a valid ID and arrange pickup at {{ c.pickup_location || 'the department Lost and Found desk' }}.</p> }
           @if (c.status === 'approved' && c.item_status === 'returned') { <p>The item was returned to you.</p> }
           @if (c.admin_remarks) { <div class="remark">{{ c.admin_remarks }}</div> }
           @if (c.status === 'pending') { <ion-button size="small" fill="outline" color="danger" (click)="cancel(c)">Cancel claim</ion-button> }

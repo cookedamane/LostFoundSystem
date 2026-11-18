@@ -32,12 +32,12 @@ class UserController extends Controller
         $data = $r->validate([
             'name' => 'required|string|min:2|max:120',
             'email' => 'required|email|max:150|unique:users,email',
-            'role' => 'required|in:admin,officer,security,registrar,it_admin',
+            'role' => 'required|in:staff',
             'password' => ['required', 'confirmed', Password::min(8)->letters()->numbers()],
         ]);
         $u = User::create($data);
         ActivityLog::record('staff_created', $u->email . ' (' . $u->role . ')');
-        return back()->with('ok', ucfirst(str_replace('_', ' ', $u->role)) . ' account created.');
+        return back()->with('ok', 'Staff account created.');
     }
 
     public function toggle(Request $r, User $user)

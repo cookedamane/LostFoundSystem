@@ -15,7 +15,7 @@ import { errorMessage } from '../core/ui';
     <div class="wrap login-wrap">
       <div class="login-brand">
         <span class="brand-mark" aria-hidden="true"><svg viewBox="0 0 32 32" fill="none"><path d="M16 3.5 27 8v7.1c0 6.7-4.4 11.2-11 13.4C10.4 26.3 6 21.8 6 15.1V8l10-4.5Z" stroke="currentColor" stroke-width="1.8"/><path d="M12.2 16.1h7.6M16 12.3v7.6" stroke="#235347" stroke-width="2.2" stroke-linecap="round"/></svg></span>
-        <span><p class="eyebrow">TEAM BANGAN</p><h1>Lost &amp; Found</h1></span>
+        <span><p class="eyebrow">DEPARTMENT LOST &amp; FOUND</p><h1>DepFind</h1></span>
       </div>
       <p class="muted login-intro">Report what you lost. Claim what you left behind.</p>
       @if (nativeApp) {

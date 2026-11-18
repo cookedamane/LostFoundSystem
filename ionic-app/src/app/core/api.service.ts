@@ -7,11 +7,12 @@ import { environment } from '../../environments/environment';
 
 export interface User { id: number; name: string; email: string; student_id: string | null; phone: string | null; }
 export interface Category { id: number; name: string; }
+export interface DepartmentInfo { department: string; locations: string[]; pickup_location: string; }
 export interface Item {
   id: number; type: 'lost' | 'found'; name: string; description: string; category_id: number; category: string;
   location: string; date_event: string; status: string; photo_url: string | null; mine: boolean; admin_note: string | null; created_at: string;
 }
-export interface MyClaim { id: number; status: string; admin_remarks: string | null; }
+export interface MyClaim { id: number; status: string; admin_remarks: string | null; pickup_location?: string; }
 export interface Claim extends MyClaim {
   proof_of_ownership: string; created_at: string; reviewed_at: string | null;
   item_id: number; item_name: string; item_status: string; item_location: string;
@@ -80,6 +81,7 @@ export class ApiService {
     return this.http.post(`${this.base}/logout`, {}).pipe(catchError(() => of(null)), tap(() => clearSession()));
   }
   categories() { return this.http.get<{ categories: Category[] }>(`${this.base}/categories`); }
+  departmentInfo() { return this.http.get<{ ok: boolean } & DepartmentInfo>(`${this.base}/locations`); }
   items(params: Record<string, string>) { return this.http.get<{ items: Item[] }>(`${this.base}/items`, { params }); }
   myItems() { return this.http.get<{ items: Item[] }>(`${this.base}/my/items`); }
   item(id: number) { return this.http.get<{ item: Item; my_claim: MyClaim | null }>(`${this.base}/items/${id}`); }

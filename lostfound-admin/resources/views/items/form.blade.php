@@ -10,7 +10,7 @@
       <select id="category_id" name="category_id" required>@foreach($categories as $c)<option value="{{ $c->id }}" @selected(old('category_id', $item->category_id)==$c->id)>{{ $c->name }}</option>@endforeach</select></div>
     <div><label for="date_event">Date {{ $item->type === 'lost' ? 'lost' : 'found' }}</label><input id="date_event" type="date" name="date_event" max="{{ now()->toDateString() }}" value="{{ old('date_event', optional($item->date_event)->toDateString()) }}" required></div>
   </div>
-  <label for="location">Location</label><input id="location" name="location" value="{{ old('location', $item->location) }}" required maxlength="150">
+  <label for="location">Department building / area</label><select id="location" name="location" required><option value="">Choose a department location</option>@foreach($locations as $location)<option value="{{ $location }}" @selected(old('location', $item->location)===$location)>{{ $location }}</option>@endforeach</select><small class="muted">Pickup is coordinated at {{ \App\Models\DepartmentSetting::value('pickup_location', config('depfind.pickup_location')) }}.</small>
   <label for="description">Description</label><textarea id="description" name="description" required maxlength="2000">{{ old('description', $item->description) }}</textarea>
   <label for="photo">Photo (JPG, PNG or WEBP, up to 2 MB)</label><input id="photo" type="file" name="photo" accept="image/*">
   @if($item->exists)

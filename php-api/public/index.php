@@ -129,6 +129,19 @@ function validPassword(string $pw): bool
     return strlen($pw) >= 8 && strlen($pw) <= 72 && preg_match('/[A-Za-z]/', $pw) && preg_match('/\d/', $pw);
 }
 
+function departmentSetting(string $key, string $fallback): string
+{
+    $value = q('SELECT setting_value FROM department_settings WHERE setting_key = ?', [$key])->fetchColumn();
+    return is_string($value) && $value !== '' ? $value : $fallback;
+}
+
+function departmentLocations(): array
+{
+    $saved = departmentSetting('department_locations', json_encode([cfg('DEPFIND_LOCATIONS', 'Department Building')]));
+    $locations = json_decode($saved, true);
+    return is_array($locations) ? array_values(array_unique(array_filter(array_map(static fn ($v) => is_string($v) ? trim($v) : '', $locations)))) : ['Department Building'];
+}
+
 // ---------- photos ----------
 function uploadDir(): string
 {
@@ -174,8 +187,11 @@ function itemOut(array $r): array
 
 function listItems(array $me, bool $mineOnly): never
 {
+    $locations = departmentLocations();
+    if (!$locations) { fail(503, 'Department locations are not configured. Ask an administrator to set them.'); }
     $w = $mineOnly ? ['i.reported_by = ?'] : ["(i.status IN ('listed','claimed') OR i.reported_by = ?)"];
-    $p = [$me['id'], $me['id'], $me['id']];
+    $w[] = 'i.location IN (' . implode(',', array_fill(0, count($locations), '?')) . ')';
+    $p = [$me['id'], $me['id'], $me['id'], ...$locations];
     $type = $_GET['type'] ?? '';
     if (in_array($type, ['lost', 'found'], true)) { $w[] = 'i.type = ?'; $p[] = $type; }
     $cat = (int) ($_GET['category_id'] ?? 0);
@@ -195,9 +211,12 @@ function listItems(array $me, bool $mineOnly): never
 
 function showItem(array $me, int $id): never
 {
-    $r = q(ITEM_COLS . " WHERE i.id = ? AND (i.status IN ('listed','claimed') OR i.reported_by = ?)", [$me['id'], $me['id'], $id, $me['id']])->fetch();
+    $locations = departmentLocations();
+    if (!$locations) { fail(503, 'Department locations are not configured. Ask an administrator to set them.'); }
+    $r = q(ITEM_COLS . " WHERE i.id = ? AND i.location IN (" . implode(',', array_fill(0, count($locations), '?')) . ") AND (i.status IN ('listed','claimed') OR i.reported_by = ?)", [$me['id'], $me['id'], $id, ...$locations, $me['id']])->fetch();
     if (!$r) { fail(404, 'That item was not found.'); }
     $claim = q('SELECT id, status, admin_remarks, created_at FROM claims WHERE item_id = ? AND user_id = ? ORDER BY id DESC LIMIT 1', [$id, $me['id']])->fetch();
+    if ($claim) { $claim['pickup_location'] = departmentSetting('pickup_location', cfg('DEPFIND_PICKUP_LOCATION', 'Department Lost and Found Desk')); }
     out(200, ['ok' => true, 'item' => itemOut($r), 'my_claim' => $claim ?: null]);
 }
 
@@ -208,6 +227,7 @@ function reportLost(array $me): never
     $name = text($in, 'name', 2, 150, $err);
     $desc = text($in, 'description', 5, 2000, $err);
     $loc = text($in, 'location', 2, 150, $err);
+    if ($loc !== '' && !in_array($loc, departmentLocations(), true)) { $err['location'] = 'Choose a location inside the department buildings.'; }
     $cat = (int) ($in['category_id'] ?? 0);
     if (!$cat || !q('SELECT 1 FROM categories WHERE id = ?', [$cat])->fetch()) { $err['category_id'] = 'Choose a category.'; }
     $date = is_scalar($in['date_event'] ?? null) ? trim((string) $in['date_event']) : '';
@@ -245,8 +265,8 @@ function createClaim(array $me): never
         // also coordinates with the admin approval transaction, preventing a
         // claim from being inserted after the item has already been awarded.
         q('SELECT id FROM users WHERE id = ? FOR UPDATE', [$me['id']])->fetch();
-        $item = q('SELECT id, type, status FROM items WHERE id = ? FOR UPDATE', [$itemId])->fetch();
-        if (!$item || $item['type'] !== 'found') {
+        $item = q('SELECT id, type, status, location FROM items WHERE id = ? FOR UPDATE', [$itemId])->fetch();
+        if (!$item || $item['type'] !== 'found' || !in_array($item['location'], departmentLocations(), true)) {
             $pdo->rollBack();
             fail(404, 'That item was not found.');
         }
@@ -276,8 +296,13 @@ function createClaim(array $me): never
 
 function myClaims(array $me): never
 {
+    $locations = departmentLocations();
+    if (!$locations) { fail(503, 'Department locations are not configured. Ask an administrator to set them.'); }
     $rows = q('SELECT c.id, c.status, c.admin_remarks, c.proof_of_ownership, c.created_at, c.reviewed_at, i.id AS item_id, i.name AS item_name, i.status AS item_status, i.location AS item_location
-        FROM claims c JOIN items i ON i.id = c.item_id WHERE c.user_id = ? ORDER BY c.created_at DESC, c.id DESC', [$me['id']])->fetchAll();
+        FROM claims c JOIN items i ON i.id = c.item_id WHERE c.user_id = ? AND i.location IN (' . implode(',', array_fill(0, count($locations), '?')) . ') ORDER BY c.created_at DESC, c.id DESC', [$me['id'], ...$locations])->fetchAll();
+    $pickup = departmentSetting('pickup_location', cfg('DEPFIND_PICKUP_LOCATION', 'Department Lost and Found Desk'));
+    foreach ($rows as &$row) { $row['pickup_location'] = $pickup; }
+    unset($row);
     out(200, ['ok' => true, 'claims' => $rows]);
 }
 
@@ -386,11 +411,14 @@ try {
     if ($path === '/' || $path === '/health') {
         // A healthy API must also reach the shared database used by Laravel.
         $database = q('SELECT DATABASE() AS name')->fetch();
-        out(200, ['ok' => true, 'service' => 'TEAM BANGAN Lost and Found API', 'database' => $database['name'] ?? null]);
+        out(200, ['ok' => true, 'service' => 'DepFind Department Lost and Found API', 'database' => $database['name'] ?? null]);
     }
     if ($m === 'POST' && $path === '/register') { register(); }
     if ($m === 'POST' && $path === '/login') { login(); }
     if ($m === 'GET' && $path === '/categories') { out(200, ['ok' => true, 'categories' => q('SELECT id, name FROM categories ORDER BY name')->fetchAll()]); }
+    if ($m === 'GET' && $path === '/locations') {
+        out(200, ['ok' => true, 'department' => departmentSetting('department_name', cfg('DEPFIND_DEPARTMENT_NAME', 'Department')), 'locations' => departmentLocations(), 'pickup_location' => departmentSetting('pickup_location', cfg('DEPFIND_PICKUP_LOCATION', 'Department Lost and Found Desk'))]);
+    }
 
     $me = auth();
     if ($m === 'POST' && $path === '/logout') { q('DELETE FROM api_tokens WHERE token_hash = ?', [hash('sha256', (string) bearer())]); out(200, ['ok' => true]); }

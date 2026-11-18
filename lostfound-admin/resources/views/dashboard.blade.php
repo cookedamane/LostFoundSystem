@@ -1,13 +1,13 @@
 @extends('layout')
 @section('title', 'Dashboard')
 @section('content')
-<h1>Dashboard</h1>
+<div class="bar"><div><p class="eyebrow">{{ \App\Models\DepartmentSetting::value('department_name', config('depfind.department')) }}</p><h1>Department overview</h1><p class="muted">Manage items found and lost inside this department. Pickup is coordinated at {{ \App\Models\DepartmentSetting::value('pickup_location', config('depfind.pickup_location')) }}.</p></div><span class="pill">{{ auth()->user()->role === 'admin' ? 'Administrator' : 'Staff' }}</span></div>
 <div class="grid">
 @foreach($stats as $label => $n)
   <div class="stat {{ in_array($label, ['Lost reports to review','Claims to review']) && $n ? 'hot' : '' }}"><b>{{ $n }}</b><span>{{ $label }}</span></div>
 @endforeach
 </div>
-@if(in_array(auth()->user()->role, ['admin', 'officer'], true))
+@if(in_array(auth()->user()->role, ['admin', 'staff'], true))
 <div class="row">
   <div class="card">
     <h2>Claims waiting for a decision</h2>
@@ -23,7 +23,7 @@
   </div>
 </div>
 @endif
-@if(in_array(auth()->user()->role, ['admin', 'officer'], true))
+@if(in_array(auth()->user()->role, ['admin', 'staff'], true))
 <div class="card">
   <h2>Items by status</h2>
   @foreach(\App\Models\Item::STATUSES as $s)

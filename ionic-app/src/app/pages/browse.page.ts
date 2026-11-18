@@ -14,7 +14,7 @@ import { Notice, errorMessage, label, niceDate } from '../core/ui';
   imports: [RouterLink, IonHeader, IonToolbar, IonTitle, IonSearchbar, IonSegment, IonSegmentButton, IonLabel, IonContent, IonRefresher, IonRefresherContent, IonList, IonItem, IonThumbnail, IonSpinner],
   template: `
   <ion-header>
-    <ion-toolbar><ion-title><span class="brand-inline"><span class="brand-mini" aria-hidden="true"><svg viewBox="0 0 32 32" fill="none"><path d="M16 3.5 27 8v7.1c0 6.7-4.4 11.2-11 13.4C10.4 26.3 6 21.8 6 15.1V8l10-4.5Z" stroke="currentColor" stroke-width="1.8"/><path d="M12.2 16.1h7.6M16 12.3v7.6" stroke="#235347" stroke-width="2.2" stroke-linecap="round"/></svg></span>Lost &amp; Found</span></ion-title></ion-toolbar>
+    <ion-toolbar><ion-title><span class="brand-inline"><span class="brand-mini" aria-hidden="true"><svg viewBox="0 0 32 32" fill="none"><path d="M16 3.5 27 8v7.1c0 6.7-4.4 11.2-11 13.4C10.4 26.3 6 21.8 6 15.1V8l10-4.5Z" stroke="currentColor" stroke-width="1.8"/><path d="M12.2 16.1h7.6M16 12.3v7.6" stroke="#235347" stroke-width="2.2" stroke-linecap="round"/></svg></span>DepFind</span></ion-title></ion-toolbar>
     <ion-toolbar><ion-searchbar placeholder="Search by item name or place" [debounce]="400" (ionInput)="search($any($event).detail.value)"></ion-searchbar></ion-toolbar>
     <ion-toolbar>
       <ion-segment [value]="type" (ionChange)="setType($any($event).detail.value)">
