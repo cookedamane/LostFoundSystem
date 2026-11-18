@@ -9,7 +9,7 @@
   <select name="category_id"><option value="">All categories</option>@foreach($categories as $c)<option value="{{ $c->id }}" @selected(request('category_id')==$c->id)>{{ $c->name }}</option>@endforeach</select>
   <button class="btn alt">Filter</button>
 </form>
-<table>
+<div class="table-wrap"><table>
   <tr><th></th><th>Item</th><th>Type</th><th>Category</th><th>Location</th><th>Date</th><th>Status</th></tr>
   @forelse($items as $i)
   <tr>
@@ -20,7 +20,7 @@
     <td><span class="pill s-{{ $i->status }}">{{ ucfirst($i->status) }}</span></td>
   </tr>
   @empty <tr><td colspan="7" class="muted">No items match. Register a found item to get started.</td></tr> @endforelse
-</table>
+</table></div>
 @include('partials.pager', ['p' => $items])
 @if(in_array(auth()->user()->role, ['admin', 'staff'], true))
 <form class="card noprint" method="POST" action="{{ route('items.import') }}" enctype="multipart/form-data">

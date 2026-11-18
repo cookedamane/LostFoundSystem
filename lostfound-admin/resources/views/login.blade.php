@@ -2,7 +2,7 @@
 @section('title', 'Sign in')
 @section('content')
 <div class="brand login-brand">
-  <span class="brand-mark" aria-hidden="true"><svg viewBox="0 0 32 32" fill="none"><path d="M16 3.5 27 8v7.1c0 6.7-4.4 11.2-11 13.4C10.4 26.3 6 21.8 6 15.1V8l10-4.5Z" stroke="currentColor" stroke-width="1.8"/><path d="M12.2 16.1h7.6M16 12.3v7.6" stroke="#235347" stroke-width="2.2" stroke-linecap="round"/></svg></span>
+  <span class="brand-mark" aria-hidden="true"><svg viewBox="0 0 32 32" fill="none"><circle cx="13.5" cy="13.5" r="9" stroke="currentColor" stroke-width="2.4"/><path d="m20.2 20.2 7.1 7.1" stroke="currentColor" stroke-width="2.8" stroke-linecap="round"/><path d="M13.5 9.5v8M9.5 13.5h8" stroke="#235347" stroke-width="1.8" stroke-linecap="round"/></svg></span>
   <span>DepFind<small>{{ \App\Models\DepartmentSetting::value('department_name', config('depfind.department')) }} &middot; STAFF PORTAL</small></span>
 </div>
 <p class="muted">Department-only lost and found. Admins and staff sign in here; students and employees use the app.</p>

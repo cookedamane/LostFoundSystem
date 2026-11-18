@@ -63,7 +63,9 @@ An Administrator can delete an account from **Accounts**. Deletion blocks future
 
 ### Build an APK with GitHub Actions
 
-The workflow at `.github/workflows/android-apk.yml` builds the Ionic Android debug APK when code is pushed to `main` or `master`, on pull requests to those branches, or when started manually from the repository's **Actions** tab. To use it, put this project in a GitHub repository and push the project files. Open **Actions → Build Android APK**, select a completed run, and download the `team-bangan-lostfound-debug-apk` artifact. The artifact is temporary and retained for 14 days. This is a debug APK for installation/testing, not a Play Store signed release.
+The workflow at `.github/workflows/android-apk.yml` builds the DepFind Android debug APK when code is pushed to `main` or `master`, on pull requests to those branches, or when started manually from the repository's **Actions** tab. To use it, put this project in a GitHub repository and push the project files. Open **Actions → Build Android APK**, select a completed run, and download the `DepFind-apk` artifact. The APK inside is named `DepFind.apk`. The artifact is temporary and retained for 14 days. This is a debug APK for installation/testing, not a Play Store signed release.
+
+On Windows with Java and the Android SDK installed, run `build-depfind-apk.bat` from the project folder. It writes the installable debug APK to `ionic-app\DepFind.apk`.
 
 The APK starts with the default API address from `ionic-app/src/environments/environment.prod.ts`, and its login screen lets the user set and test the current laptop API address. GitHub Actions builds the app package; it does not host the API or database.
 

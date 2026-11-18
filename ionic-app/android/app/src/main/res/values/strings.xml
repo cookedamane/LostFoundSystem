@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='utf-8'?>
 <resources>
-    <string name="app_name">Lost and Found</string>
-    <string name="title_activity_main">Lost and Found</string>
+    <string name="app_name">DepFind</string>
+    <string name="title_activity_main">DepFind</string>
     <string name="package_name">ph.edu.isu.teambangan.lostfound</string>
     <string name="custom_url_scheme">ph.edu.isu.teambangan.lostfound</string>
 </resources>

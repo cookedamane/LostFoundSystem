@@ -53,10 +53,13 @@ jobs:
         working-directory: ionic-app/android
         run: bash ./gradlew assembleDebug --no-daemon
 
+      - name: Name APK DepFind
+        run: cp ionic-app/android/app/build/outputs/apk/debug/app-debug.apk ionic-app/android/app/build/outputs/apk/debug/DepFind.apk
+
       - name: Upload APK
         uses: actions/upload-artifact@v7
         with:
-          name: team-bangan-lostfound-debug-apk
-          path: ionic-app/android/app/build/outputs/apk/debug/app-debug.apk
+          name: DepFind-apk
+          path: ionic-app/android/app/build/outputs/apk/debug/DepFind.apk
           if-no-files-found: error
           retention-days: 14

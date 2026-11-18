@@ -16,6 +16,9 @@ class SettingsController extends Controller
             'department' => DepartmentSetting::value('department_name', config('depfind.department', 'Department')),
             'locations' => implode("\n", DepartmentSetting::locations()),
             'pickup' => DepartmentSetting::value('pickup_location', config('depfind.pickup_location', 'Department Lost and Found Desk')),
+            'activeLocationItems' => Item::whereIn('status', ['pending', 'listed', 'claimed'])
+                ->whereIn('location', DepartmentSetting::locations())
+                ->orderBy('location')->orderBy('id')->get(['id', 'name', 'type', 'status', 'location']),
         ]);
     }
 
@@ -31,9 +34,16 @@ class SettingsController extends Controller
             return back()->withInput()->withErrors(['locations' => 'Enter 1–30 department locations, each 2–150 characters long.']);
         }
         $removed = array_diff(DepartmentSetting::locations(), $locations);
-        $activeAtRemovedLocations = Item::whereIn('location', $removed)->whereIn('status', ['pending', 'listed', 'claimed'])->distinct()->pluck('location');
-        if ($activeAtRemovedLocations->isNotEmpty()) {
-            return back()->withInput()->withErrors(['locations' => 'Resolve active reports and claims at these locations before removing them: ' . $activeAtRemovedLocations->join(', ') . '.']);
+        $activeAtRemovedLocations = Item::whereIn('location', $removed)
+            ->whereIn('status', ['pending', 'listed', 'claimed'])
+            ->orderBy('location')->orderBy('id')
+            ->get(['id', 'name', 'type', 'status', 'location']);
+        $retainedLocations = $activeAtRemovedLocations->pluck('location')->unique()->values()->all();
+        // Keep an active location in scope until its records are resolved. This
+        // allows admins to add new locations without hiding open reports/claims.
+        $locations = array_values(array_unique([...$locations, ...$retainedLocations]));
+        if (count($locations) > 30) {
+            return back()->withInput()->withErrors(['locations' => 'The requested locations plus locations that must stay active exceed the 30-location limit. Resolve active reports or claims at the old locations, then save again.']);
         }
 
         DB::transaction(function () use ($data, $locations) {
@@ -47,6 +57,10 @@ class SettingsController extends Controller
             ActivityLog::record('department_settings_updated', 'Updated department identity, allowed locations, or pickup point');
         });
 
-        return back()->with('ok', 'Department settings saved. New reports and found-item entries now use these locations.');
+        $message = 'Department settings saved. The staff item form and mobile app now use the updated locations.';
+        if ($retainedLocations) {
+            $message .= ' These locations remain temporarily because they still have active records: ' . implode(', ', $retainedLocations) . '. They can be removed after those records are resolved.';
+        }
+        return back()->with('ok', $message);
     }
 }
