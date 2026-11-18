@@ -21,7 +21,11 @@ class DashboardController extends Controller
                 'Lost reports to review' => $items()->where('type', 'lost')->where('status', 'pending')->count(),
                 'Claims to review' => Claim::where('status', 'pending')->whereHas('item', fn ($q) => $q->whereIn('location', $locations))->count(),
                 'Items returned' => $items()->where('status', 'returned')->count(),
-                'Registered users' => User::where('role', 'user')->count(),
+                // Account deletion anonymizes retained rows for audit history;
+                // do not include those deleted accounts in the dashboard total.
+                'Registered users' => User::where('role', 'user')
+                    ->where('email', 'not like', 'deleted-%@example.invalid')
+                    ->count(),
             ],
             'byStatus' => $byStatus,
             'maxStatus' => max(1, $byStatus->max() ?? 1),
