@@ -11,7 +11,9 @@ class ClaimController extends Controller
 {
     public function index(Request $r)
     {
-        $q = Claim::with(['item', 'user'])->latest();
+        // ID is a deterministic tie-breaker because MySQL NOW() timestamps can match
+        // when multiple app claims are submitted within the same second.
+        $q = Claim::with(['item', 'user'])->orderByDesc('created_at')->orderByDesc('id');
         if ($r->filled('status')) {
             $q->where('status', $r->input('status'));
         }

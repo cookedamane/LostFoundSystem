@@ -1,7 +1,7 @@
 @extends('layout')
 @section('title', 'Claims')
 @section('content')
-<h1>Claims</h1>
+<div class="bar"><div><h1>Claims</h1><p class="muted">{{ $claims->total() }} claim(s) · New app submissions appear automatically.</p></div><a class="btn alt" href="{{ route('claims.index', request()->query()) }}">Refresh now</a></div>
 <form class="filters" method="GET">
   <select name="status"><option value="">All claims</option>@foreach(['pending','approved','rejected'] as $s)<option value="{{ $s }}" @selected(request('status')==$s)>{{ ucfirst($s) }}</option>@endforeach</select>
   <button class="btn alt">Filter</button>
@@ -15,4 +15,8 @@
   @empty <tr><td colspan="5" class="muted">No claims yet. They appear here when users claim a found item in the app.</td></tr> @endforelse
 </table>
 @include('partials.pager', ['p' => $claims])
+<script>
+  // Keep the staff queue current when a student submits a claim from the app.
+  window.setTimeout(() => window.location.reload(), 15000);
+</script>
 @endsection

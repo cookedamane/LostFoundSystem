@@ -363,7 +363,11 @@ try {
     $path = '/' . trim(preg_replace('#^/api#', '', parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?: '/'), '/');
     $m = $_SERVER['REQUEST_METHOD'] ?? 'GET';
 
-    if ($path === '/' || $path === '/health') { out(200, ['ok' => true, 'service' => 'TEAM BANGAN Lost and Found API']); }
+    if ($path === '/' || $path === '/health') {
+        // A healthy API must also reach the shared database used by Laravel.
+        $database = q('SELECT DATABASE() AS name')->fetch();
+        out(200, ['ok' => true, 'service' => 'TEAM BANGAN Lost and Found API', 'database' => $database['name'] ?? null]);
+    }
     if ($m === 'POST' && $path === '/register') { register(); }
     if ($m === 'POST' && $path === '/login') { login(); }
     if ($m === 'GET' && $path === '/categories') { out(200, ['ok' => true, 'categories' => q('SELECT id, name FROM categories ORDER BY name')->fetchAll()]); }

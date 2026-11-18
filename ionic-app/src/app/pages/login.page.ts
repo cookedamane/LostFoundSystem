@@ -68,7 +68,7 @@ export class LoginPage {
     this.apiUrl = this.api.apiUrl;
     this.checkingServer = true;
     this.api.testConnection().subscribe({
-      next: r => { this.checkingServer = false; this.serverConnected = r.ok; this.serverMessage = r.ok ? 'Connected to the Lost and Found API.' : 'The server responded, but it did not confirm the API is ready.'; },
+      next: r => { this.checkingServer = false; this.serverConnected = r.ok; this.serverMessage = r.ok ? `Connected to the API and database${r.database ? ` (${r.database})` : ''}.` : 'The server responded, but it did not confirm the API and database are ready.'; },
       error: () => { this.checkingServer = false; this.serverConnected = false; this.serverMessage = 'Cannot reach the API. Check the laptop IP, port 8000, Wi-Fi, and that the API window is running.'; },
     });
   }

@@ -61,7 +61,7 @@ export class ApiService {
   }
 
   testConnection() {
-    return this.http.get<{ ok: boolean; service?: string }>(`${this.base}/health`).pipe(timeout({ first: 5000 }));
+    return this.http.get<{ ok: boolean; service?: string; database?: string | null }>(`${this.base}/health`).pipe(timeout({ first: 5000 }));
   }
 
   isApiRequest(url: string): boolean { return url.startsWith(this.base); }
