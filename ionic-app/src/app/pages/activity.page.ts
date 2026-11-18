@@ -1,6 +1,7 @@
 import { Component, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { ViewWillEnter } from '@ionic/angular';
+import { ViewWillEnter, ViewWillLeave } from '@ionic/angular';
+import { Subscription, timer } from 'rxjs';
 import {
   AlertController, IonButton, IonContent, IonHeader, IonLabel, IonRefresher, IonRefresherContent, IonSegment, IonSegmentButton,
   IonSpinner, IonTitle, IonToolbar,
@@ -49,7 +50,7 @@ import { Notice, errorMessage, label, niceDate } from '../core/ui';
     }
   </ion-content>`,
 })
-export class ActivityPage implements ViewWillEnter {
+export class ActivityPage implements ViewWillEnter, ViewWillLeave {
   private api = inject(ApiService);
   private notice = inject(Notice);
   private alerts = inject(AlertController);
@@ -57,15 +58,32 @@ export class ActivityPage implements ViewWillEnter {
   claims: Claim[] = [];
   reports: Item[] = [];
   loading = true;
+  private refreshing = false;
+  private refreshTimer?: Subscription;
   label = label;
   date = niceDate;
 
   statusText(s: string) { return s === 'pending' ? 'Waiting for review' : s === 'listed' ? 'Listed' : label(s); }
-  ionViewWillEnter() { this.load(); }
+  ionViewWillEnter() {
+    this.load();
+    this.refreshTimer?.unsubscribe();
+    // Keep the student's status in step with decisions made in the staff portal.
+    this.refreshTimer = timer(10000, 10000).subscribe(() => this.load());
+  }
+
+  ionViewWillLeave() { this.refreshTimer?.unsubscribe(); }
 
   load(done?: () => void) {
+    if (this.refreshing) { done?.(); return; }
+    this.refreshing = true;
     let left = 2;
-    const finish = () => { if (--left === 0) { this.loading = false; done?.(); } };
+    const finish = () => {
+      if (--left === 0) {
+        this.loading = false;
+        this.refreshing = false;
+        done?.();
+      }
+    };
     this.api.myClaims().subscribe({ next: r => { this.claims = r.claims; finish(); }, error: e => { this.notice.show(errorMessage(e), 'danger'); finish(); } });
     this.api.myItems().subscribe({ next: r => { this.reports = r.items.filter(i => i.type === 'lost'); finish(); }, error: () => finish() });
   }

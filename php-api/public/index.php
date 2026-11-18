@@ -238,19 +238,39 @@ function createClaim(array $me): never
     $det = text($in, 'identifying_details', 0, 1000, $err, false);
     ensure($err);
 
-    $item = q('SELECT id, type, status FROM items WHERE id = ?', [$itemId])->fetch();
-    if (!$item || $item['type'] !== 'found') { fail(404, 'That item was not found.'); }
-    if ($item['status'] !== 'listed') { fail(409, 'This item can no longer be claimed.'); }
-    if (q("SELECT 1 FROM claims WHERE item_id = ? AND user_id = ? AND status IN ('pending','approved')", [$itemId, $me['id']])->fetch()) {
-        fail(409, 'You already have an active claim on this item.');
+    $pdo = db();
+    $pdo->beginTransaction();
+    try {
+        // Serialize submissions by this user and by this item. The item lock
+        // also coordinates with the admin approval transaction, preventing a
+        // claim from being inserted after the item has already been awarded.
+        q('SELECT id FROM users WHERE id = ? FOR UPDATE', [$me['id']])->fetch();
+        $item = q('SELECT id, type, status FROM items WHERE id = ? FOR UPDATE', [$itemId])->fetch();
+        if (!$item || $item['type'] !== 'found') {
+            $pdo->rollBack();
+            fail(404, 'That item was not found.');
+        }
+        if ($item['status'] !== 'listed') {
+            $pdo->rollBack();
+            fail(409, 'This item can no longer be claimed.');
+        }
+        if (q("SELECT 1 FROM claims WHERE item_id = ? AND user_id = ? AND status IN ('pending','approved')", [$itemId, $me['id']])->fetch()) {
+            $pdo->rollBack();
+            fail(409, 'You already have an active claim on this item.');
+        }
+        if ((int) q("SELECT COUNT(*) c FROM claims WHERE user_id = ? AND status = 'pending'", [$me['id']])->fetch()['c'] >= 5) {
+            $pdo->rollBack();
+            fail(429, 'You have 5 claims waiting for review. Wait for a decision before claiming more.');
+        }
+        q('INSERT INTO claims (item_id, user_id, proof_of_ownership, identifying_details, status, created_at, updated_at) VALUES (?,?,?,?,\'pending\',NOW(),NOW())',
+            [$itemId, $me['id'], $proof, $det ?: null]);
+        $id = (int) $pdo->lastInsertId();
+        logAct((int) $me['id'], 'claim_submitted', "Claim #$id on item #$itemId");
+        $pdo->commit();
+    } catch (Throwable $e) {
+        if ($pdo->inTransaction()) { $pdo->rollBack(); }
+        throw $e;
     }
-    if ((int) q("SELECT COUNT(*) c FROM claims WHERE user_id = ? AND status = 'pending'", [$me['id']])->fetch()['c'] >= 5) {
-        fail(429, 'You have 5 claims waiting for review. Wait for a decision before claiming more.');
-    }
-    q('INSERT INTO claims (item_id, user_id, proof_of_ownership, identifying_details, status, created_at, updated_at) VALUES (?,?,?,?,\'pending\',NOW(),NOW())',
-        [$itemId, $me['id'], $proof, $det ?: null]);
-    $id = (int) db()->lastInsertId();
-    logAct((int) $me['id'], 'claim_submitted', "Claim #$id on item #$itemId");
     out(201, ['ok' => true, 'message' => 'Claim sent. You will see the decision under Activity.', 'id' => $id]);
 }
 

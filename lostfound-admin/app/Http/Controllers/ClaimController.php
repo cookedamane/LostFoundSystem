@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\ActivityLog;
 use App\Models\Claim;
+use App\Models\Item;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -28,31 +29,40 @@ class ClaimController extends Controller
     public function decide(Request $r, Claim $claim)
     {
         $data = $r->validate(['decision' => 'required|in:approve,reject', 'admin_remarks' => 'nullable|string|max:1000']);
-        if ($claim->status !== 'pending') {
-            return back()->withErrors(['decision' => 'This claim was already reviewed.']);
-        }
         if ($data['decision'] === 'reject' && blank($data['admin_remarks'] ?? null)) {
             return back()->withErrors(['admin_remarks' => 'Give a reason so the user knows what to fix.']);
         }
-        if ($data['decision'] === 'approve' && $claim->item->status !== 'listed') {
-            return back()->withErrors(['decision' => 'The item is no longer available for claiming.']);
-        }
 
-        DB::transaction(function () use ($claim, $data, $r) {
+        $error = DB::transaction(function () use ($claim, $data, $r) {
+            // Lock item first, then claim, using the same order for every
+            // decision on an item. This prevents conflicting approvals and
+            // avoids deadlocks between claims for the same item.
+            $item = Item::whereKey($claim->item_id)->lockForUpdate()->firstOrFail();
+            $lockedClaim = Claim::whereKey($claim->id)->lockForUpdate()->firstOrFail();
+            if ($lockedClaim->status !== 'pending') {
+                return 'This claim was already reviewed.';
+            }
             $approve = $data['decision'] === 'approve';
-            $claim->update([
+            if ($approve && $item->status !== 'listed') {
+                return 'The item is no longer available for claiming.';
+            }
+            $lockedClaim->update([
                 'status' => $approve ? 'approved' : 'rejected',
                 'admin_remarks' => $data['admin_remarks'] ?? null,
                 'reviewed_by' => $r->user()->id,
                 'reviewed_at' => now(),
             ]);
             if ($approve) {
-                $claim->item->update(['status' => 'claimed']);
-                Claim::where('item_id', $claim->item_id)->where('status', 'pending')->where('id', '!=', $claim->id)
+                $item->update(['status' => 'claimed']);
+                Claim::where('item_id', $lockedClaim->item_id)->where('status', 'pending')->where('id', '!=', $lockedClaim->id)
                     ->update(['status' => 'rejected', 'admin_remarks' => 'Another claim for this item was approved.', 'reviewed_by' => $r->user()->id, 'reviewed_at' => now()]);
             }
-            ActivityLog::record('claim_' . $data['decision'], "Claim #{$claim->id} on item #{$claim->item_id}");
+            ActivityLog::record('claim_' . $data['decision'], "Claim #{$lockedClaim->id} on item #{$lockedClaim->item_id}");
+            return null;
         });
+        if ($error) {
+            return back()->withErrors(['decision' => $error]);
+        }
 
         return redirect()->route('claims.show', $claim)->with('ok', 'Decision saved. The user will see it in the app.');
     }
