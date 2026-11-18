@@ -18,7 +18,9 @@ class UserController extends Controller
 
     public function index(Request $r)
     {
-        $q = User::withCount('claims')->where('email', 'not like', 'deleted-%@example.invalid')->orderBy('role')->orderBy('name');
+        // Show recently created accounts first so a new Staff account is
+        // immediately visible on page one, even when the directory is paginated.
+        $q = User::withCount('claims')->where('email', 'not like', 'deleted-%@example.invalid')->orderByDesc('created_at')->orderByDesc('id');
         if ($r->filled('q')) {
             $t = '%' . $r->input('q') . '%';
             $q->where(fn ($w) => $w->where('name', 'like', $t)->orWhere('email', 'like', $t)->orWhere('student_id', 'like', $t));
@@ -37,7 +39,7 @@ class UserController extends Controller
         ]);
         $u = User::create($data);
         ActivityLog::record('staff_created', $u->email . ' (' . $u->role . ')');
-        return back()->with('ok', 'Staff account created.');
+        return redirect()->route('users.index')->with('ok', "Staff account {$u->name} ({$u->email}) was created and is at the top of the list.");
     }
 
     public function toggle(Request $r, User $user)
